@@ -2,14 +2,16 @@ use rocket::form::validate::Contains;
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::response::status;
+use serde::{Deserialize, Serialize};
 
 use crate::jwt_master::jwt_master::validate_jwt;
 use crate::model::status_message::StatusMessage;
 
-pub struct ApiKey<'r>(&'r str);
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AuthenticationGuard<'r>(&'r str);
 
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for ApiKey<'r> {
+impl<'r> FromRequest<'r> for AuthenticationGuard<'r> {
     type Error = StatusMessage;
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, StatusMessage> {
@@ -32,7 +34,7 @@ impl<'r> FromRequest<'r> for ApiKey<'r> {
             Some(key) => {
                 let validated_result = is_valid(key);
                 if validated_result.0 {
-                    Outcome::Success(ApiKey(key))
+                    Outcome::Success(AuthenticationGuard(key))
                 } else {
                     match validated_result.1 {
                         Some(is_expired) => {

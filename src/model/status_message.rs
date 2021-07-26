@@ -138,7 +138,6 @@ impl StatusMessage {
             Status::NotFound,
         )
     }
-
     pub fn not_found_404_with_status_code_in_result<T>(message: String)
                                                        -> status::Custom<Result<T, Json<StatusMessage>>> {
         StatusMessage::custom_with_status_code_in_result(
