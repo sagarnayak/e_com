@@ -13,6 +13,7 @@ mod core;
 mod jwt_master;
 mod contracts;
 mod model;
+mod guards;
 
 #[launch]
 async fn init_main() -> _ {
