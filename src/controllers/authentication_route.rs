@@ -34,21 +34,11 @@ pub fn authenticate(authentication_request: Option<Json<AuthenticationRequest>>)
             ) {
                 Ok(positive) => status::Custom(
                     Status::Ok,
-                    Ok(
-                        Json(
-                            AuthenticationResponse {
-                                jwt: positive
-                            }
-                        )
-                    ),
+                    Ok(Json(AuthenticationResponse { jwt: positive })),
                 ),
                 Err(error) => status::Custom(
                     Status::BadRequest,
-                    Err(
-                        Json(
-                            error
-                        )
-                    )
+                    Err(Json(error)),
                 )
             }
         } else {
