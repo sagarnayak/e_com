@@ -1,25 +1,6 @@
 use serde::Deserialize;
 
-use crate::core::constants::{
-    DATABASE_NAME_DEV,
-    DATABASE_NAME_PROD,
-    DATABASE_NAME_TEST,
-    HOST_DEV,
-    HOST_PROD,
-    HOST_TEST,
-    JWT_SECRET_DEV,
-    JWT_SECRET_PROD,
-    JWT_SECRET_TEST,
-    PASSWORD_DEV,
-    PASSWORD_PROD,
-    PASSWORD_TEST,
-    PORT_DEV,
-    PORT_PROD,
-    PORT_TEST,
-    USER_DEV,
-    USER_PROD,
-    USER_TEST,
-};
+use crate::core::constants::{ADMIN_NAME_DEV, ADMIN_NAME_PROD, ADMIN_NAME_TEST, ADMIN_PASSWORD_DEV, ADMIN_PASSWORD_PROD, ADMIN_PASSWORD_TEST, DATABASE_NAME_DEV, DATABASE_NAME_PROD, DATABASE_NAME_TEST, HOST_DEV, HOST_PROD, HOST_TEST, JWT_SECRET_DEV, JWT_SECRET_PROD, JWT_SECRET_TEST, PASSWORD_DEV, PASSWORD_PROD, PASSWORD_TEST, PORT_DEV, PORT_PROD, PORT_TEST, USER_DEV, USER_PROD, USER_TEST};
 
 impl ConfigData {
     fn conf_data_for_env(environment: ENV) -> ConfigData {
@@ -35,6 +16,10 @@ impl ConfigData {
                 jwt: JWTConfig {
                     secret: JWT_SECRET_DEV.to_string(),
                 },
+                admin_data: AdminData {
+                    admin_name: ADMIN_NAME_DEV.to_string(),
+                    admin_password: ADMIN_PASSWORD_DEV.to_string(),
+                },
             },
             ENV::Testing => ConfigData {
                 database: DatabaseConfig {
@@ -47,6 +32,10 @@ impl ConfigData {
                 jwt: JWTConfig {
                     secret: JWT_SECRET_TEST.to_string(),
                 },
+                admin_data: AdminData {
+                    admin_name: ADMIN_NAME_TEST.to_string(),
+                    admin_password: ADMIN_PASSWORD_TEST.to_string(),
+                },
             },
             ENV::Production => ConfigData {
                 database: DatabaseConfig {
@@ -58,6 +47,10 @@ impl ConfigData {
                 },
                 jwt: JWTConfig {
                     secret: JWT_SECRET_PROD.to_string(),
+                },
+                admin_data: AdminData {
+                    admin_name: ADMIN_NAME_PROD.to_string(),
+                    admin_password: ADMIN_PASSWORD_PROD.to_string(),
                 },
             },
         }
@@ -79,9 +72,16 @@ pub struct JWTConfig {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct AdminData {
+    pub admin_name: String,
+    pub admin_password: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct ConfigData {
     pub database: DatabaseConfig,
     pub jwt: JWTConfig,
+    pub admin_data: AdminData,
 }
 
 #[derive(Clone, Debug, Deserialize)]
