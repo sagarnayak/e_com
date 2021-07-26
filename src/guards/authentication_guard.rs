@@ -29,27 +29,40 @@ impl<'r> FromRequest<'r> for ApiKey<'r> {
 
         match req.headers().get_one("Authorization") {
             None => Outcome::Failure((Status::Unauthorized, StatusMessage { code: 401, message: "You are not authorised".to_string() })),
-            // Some(key) if is_valid(key) => Outcome::Success(ApiKey(key)),
-            Some(key)=>{
+            Some(key) => {
                 let validated_result = is_valid(key);
                 if validated_result.0 {
                     Outcome::Success(ApiKey(key))
-                }else  {
+                } else {
                     match validated_result.1 {
-                        Some(is_expired)=>{
+                        Some(is_expired) => {
                             if is_expired {
                                 Outcome::Failure(
                                     (
-                                     4012,
+                                        Status::Unauthorized,
+                                        StatusMessage { code: 401, message: "You are not authorised".to_string() }
+                                    )
+                                )
+                            } else {
+                                Outcome::Failure(
+                                    (
+                                        Status::Unauthorized,
                                         StatusMessage { code: 401, message: "You are not authorised".to_string() }
                                     )
                                 )
                             }
                         }
+                        None => {
+                            Outcome::Failure(
+                                (
+                                    Status::Unauthorized,
+                                    StatusMessage { code: 401, message: "You are not authorised".to_string() }
+                                )
+                            )
+                        }
                     }
                 }
-            } ,
-            Some(_) => Outcome::Failure((Status::Unauthorized, StatusMessage { code: 401, message: "You are not authorised".to_string() })),
+            }
         }
     }
 }

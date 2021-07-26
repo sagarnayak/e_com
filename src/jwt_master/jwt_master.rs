@@ -37,11 +37,11 @@ pub fn validate_jwt(jwt: String) -> (bool, bool) {
     let mut is_valid = false;
     let mut is_expired = false;
 
-    let key = ConfigData::new().jwt.secret.as_bytes();
-
     let token_data = match decode::<Claims>(
-        &jwt_validation_request.token,
-        &DecodingKey::from_secret(key),
+        &jwt,
+        &DecodingKey::from_secret(
+            ConfigData::new().jwt.secret.as_bytes()
+        ),
         &Validation::new(Algorithm::HS512),
     ) {
         Ok(c) => {
@@ -57,7 +57,7 @@ pub fn validate_jwt(jwt: String) -> (bool, bool) {
                 ErrorKind::ExpiredSignature => {
                     is_expired = true;
                 }
-                _ => "Other error".to_owned(),
+                _ => {}
             };
         }
     };
