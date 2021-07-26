@@ -4,11 +4,11 @@ use rocket::State;
 use tokio_postgres::NoTls;
 
 use crate::config_controller::ConfigData;
+use crate::database::database_master;
 use crate::database::db_pool::DbPool;
 use crate::migrations::migration_contracts::MigrationContracts;
 use crate::migrations::migrations::MigrationStruct;
 use crate::model::status_message::StatusMessage;
-use crate::database::database_master;
 
 fn get_pool() -> Pool {
     let config = ConfigData::new();
@@ -58,6 +58,9 @@ pub async fn resolve_client(db_pool: &State<DbPool>) -> Result<Client, Json<Stat
 }
 
 pub async fn may_execute_migrations() {
-    let db_pool  = database_master::get_db_pools();
-    MigrationStruct::may_create_users_table(db_pool).await;
+    let db_pool = database_master::get_db_pools();
+    match MigrationStruct::may_create_users_table(&db_pool).await {
+        Ok(positive) => println!("user table result : {:?}", positive),
+        Err(error) => println!("user table error error is {:?}", error),
+    }
 }

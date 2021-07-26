@@ -1,2 +1,3 @@
-pub mod generic_apis;
+pub mod authentication_route;
 pub mod routes;
+pub mod catchers;

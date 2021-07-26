@@ -1,14 +1,6 @@
-use std::io::Cursor;
-
 use async_trait::async_trait;
-use rocket::http::ContentType;
-use rocket::request::Request;
-use rocket::response::{self, Responder, Response};
-use rocket::serde::json::Json;
-use rocket::State;
 use serde::{Deserialize, Serialize};
 
-use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 use crate::migrations::migration_contracts::MigrationContracts;
 use crate::model::status_message::StatusMessage;
@@ -20,12 +12,12 @@ pub struct MigrationStruct;
 #[async_trait]
 impl MigrationContracts for MigrationStruct {
     async fn may_create_users_table(
-        db_pool: DbPool
-    ) -> Result<Json<String>, Json<StatusMessage>> {
+        db_pool: &DbPool
+    ) -> Result<String, StatusMessage> {
         let client = match db_pool.pool.get().await {
             Ok(client_positive) => client_positive,
-            Err(error) => return Err(
-                Json(StatusMessage::bad_req(error.to_string()))
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string()
             ),
         };
 
@@ -40,8 +32,8 @@ impl MigrationContracts for MigrationStruct {
             )
             .await {
             Ok(statement_positive) => statement_positive,
-            Err(error) => return Err(
-                Json(StatusMessage::bad_req(error.to_string()))
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
             ),
         };
 
@@ -50,13 +42,11 @@ impl MigrationContracts for MigrationStruct {
             &[],
         ).await {
             Ok(positive) => positive,
-            Err(error) => return Err(
-                Json(StatusMessage::bad_req(error.to_string()))
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
             )
         };
 
-        println!("the result is :: {}", results);
-
-        Ok(Json("Done".to_string()))
+        Ok(format!("done :: {}", results))
     }
 }
