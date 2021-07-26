@@ -47,26 +47,30 @@ impl StatusMessage {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     // for 200
-    pub fn ok_200_in_result<T>(message: String) -> Result<T, StatusMessage> {
-        Err(
+    pub fn ok_200_in_result<T>(message: String) -> Result<StatusMessage, T> {
+        Ok(
             StatusMessage::custom(
                 message,
                 Status::Ok,
             )
         )
     }
-    pub fn ok_200_with_status_code<T>(message: String)
-                                      -> status::Custom<Json<StatusMessage>> {
+    pub fn ok_200_with_status_code(message: String)
+                                   -> status::Custom<Json<StatusMessage>> {
         StatusMessage::custom_with_status_code(
             message,
             Status::Ok,
         )
     }
     pub fn ok_200_with_status_code_in_result<T>(message: String)
-                                                -> status::Custom<Result<T, Json<StatusMessage>>> {
-        StatusMessage::custom_with_status_code_in_result(
-            message,
+                                                -> status::Custom<Result<Json<StatusMessage>, T>> {
+        status::Custom(
             Status::Ok,
+            Ok(
+                Json(
+                    StatusMessage::custom(message, Status::Ok)
+                )
+            ),
         )
     }
 
@@ -79,8 +83,8 @@ impl StatusMessage {
             )
         )
     }
-    pub fn bad_request_400_with_status_code<T>(message: String)
-                                               -> status::Custom<Json<StatusMessage>> {
+    pub fn bad_request_400_with_status_code(message: String)
+                                            -> status::Custom<Json<StatusMessage>> {
         StatusMessage::custom_with_status_code(
             message,
             Status::BadRequest,
@@ -103,8 +107,8 @@ impl StatusMessage {
             )
         )
     }
-    pub fn unauthorized_401_with_status_code<T>(message: String)
-                                                -> status::Custom<Json<StatusMessage>> {
+    pub fn unauthorized_401_with_status_code(message: String)
+                                             -> status::Custom<Json<StatusMessage>> {
         StatusMessage::custom_with_status_code(
             message,
             Status::Unauthorized,

@@ -10,6 +10,7 @@ mod database;
 mod config_controller;
 mod controllers;
 mod core;
+mod jwt_master;
 mod contracts;
 mod model;
 
