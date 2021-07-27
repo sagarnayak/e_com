@@ -6,8 +6,8 @@ use rocket::serde::json::Json;
 use crate::core::strings::{GENERIC, NOT_FOUND};
 use crate::model::status_message::StatusMessage;
 
-#[catch(400)]
-pub fn for_400(_: Status, req: &Request) -> status::Custom<Json<StatusMessage>> {
+#[catch(404)]
+pub fn for_404(_: Status, req: &Request) -> status::Custom<Json<StatusMessage>> {
     StatusMessage::not_found_404_with_status_code(
         format!("{} : {}", NOT_FOUND, req.uri())
     )

@@ -1,11 +1,6 @@
-use chrono::Utc;
-use jsonwebtoken::{Algorithm, decode, DecodingKey, EncodingKey, Header, Validation};
-use jsonwebtoken::encode;
-use jsonwebtoken::errors::ErrorKind;
 use rocket::http::Status;
 use rocket::response::status;
 use rocket::serde::json::Json;
-use serde::{Deserialize, Serialize};
 
 use crate::config_controller::ConfigData;
 use crate::core::strings::{BAD_REQUEST, UNAUTHORIZED, WELCOME_ADMIN};
@@ -13,7 +8,6 @@ use crate::guards::authentication_guard::AuthenticationGuard;
 use crate::jwt_master::jwt_master::create_jwt;
 use crate::model::authentication_request::AuthenticationRequest;
 use crate::model::authentication_response::AuthenticationResponse;
-use crate::model::claims::Claims;
 use crate::model::status_message::StatusMessage;
 
 #[post("/authenticate", data = "<authentication_request>")]

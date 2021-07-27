@@ -36,26 +36,26 @@ pub fn get_db_pools() -> DbPool {
     }
 }
 
-pub async fn resolve_client(db_pool: &State<DbPool>) -> Result<Client, Json<StatusMessage>> {
-    let client: Result<Client, PoolError> = db_pool.pool.get().await;
-
-    let client: Client = match client {
-        Ok(client_positive) => client_positive,
-        Err(pool_error) => {
-            println!("we are getting an error {}", pool_error);
-            return Err(
-                Json(
-                    StatusMessage {
-                        code: 400,
-                        message: pool_error.to_string(),
-                    }
-                )
-            );
-        }
-    };
-
-    Ok(client)
-}
+// pub async fn resolve_client(db_pool: &State<DbPool>) -> Result<Client, Json<StatusMessage>> {
+//     let client: Result<Client, PoolError> = db_pool.pool.get().await;
+//
+//     let client: Client = match client {
+//         Ok(client_positive) => client_positive,
+//         Err(pool_error) => {
+//             println!("we are getting an error {}", pool_error);
+//             return Err(
+//                 Json(
+//                     StatusMessage {
+//                         code: 400,
+//                         message: pool_error.to_string(),
+//                     }
+//                 )
+//             );
+//         }
+//     };
+//
+//     Ok(client)
+// }
 
 pub async fn may_execute_migrations() {
     let db_pool = database_master::get_db_pools();

@@ -1,11 +1,9 @@
-use rocket::form::validate::Contains;
-use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
-use rocket::response::status;
 use serde::{Deserialize, Serialize};
 
 use crate::jwt_master::jwt_master::validate_jwt;
 use crate::model::status_message::StatusMessage;
+use rocket::http::Status;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AuthenticationGuard<'r>(&'r str);

@@ -1,7 +1,6 @@
 use chrono::Utc;
 use jsonwebtoken::{Algorithm, decode, DecodingKey, encode, EncodingKey, Header, Validation};
 use jsonwebtoken::errors::ErrorKind;
-use rocket::serde::json::serde_json::ser::CharEscape::CarriageReturn;
 
 use crate::config_controller::ConfigData;
 use crate::core::strings::FAILED_TO_CREATE_JWT;
@@ -37,14 +36,14 @@ pub fn validate_jwt(jwt: String) -> (bool, bool) {
     let mut is_valid = false;
     let mut is_expired = false;
 
-    let token_data = match decode::<Claims>(
+    let _ = match decode::<Claims>(
         &jwt,
         &DecodingKey::from_secret(
             ConfigData::new().jwt.secret.as_bytes()
         ),
         &Validation::new(Algorithm::HS512),
     ) {
-        Ok(c) => {
+        Ok(_) => {
             is_valid = true;
             is_expired = false;
         }
@@ -62,5 +61,5 @@ pub fn validate_jwt(jwt: String) -> (bool, bool) {
         }
     };
 
-    (is_valid, is_expired)
+    return (is_valid, is_expired);
 }
