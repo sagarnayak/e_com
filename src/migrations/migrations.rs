@@ -22,13 +22,17 @@ impl MigrationContracts for MigrationStruct {
         };
 
         let statement = match client
-            .prepare_cached(&format!(
-                "CREATE TABLE IF NOT EXISTS users(\
-                id uuid,\
-                name varchar(100) NOT NULL,\
-                email varchar(100) NOT NULL,\
-                PRIMARY KEY (id) )"
-            )
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS users(\
+                    id uuid default gen_random_uuid(),\
+                    role uuid NOT NULL,\
+                    name varchar(100) NOT NULL,\
+                    email varchar(100) NOT NULL,\
+                    created timestamptz default CURRENT_TIMESTAMP,\
+                    modified timestamptz,\
+                    PRIMARY KEY (id) )"
+                )
             )
             .await {
             Ok(statement_positive) => statement_positive,
