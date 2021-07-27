@@ -1,6 +1,4 @@
 use deadpool_postgres::{Client, Config, ManagerConfig, Pool, PoolError, RecyclingMethod};
-use rocket::serde::json::Json;
-use rocket::State;
 use tokio_postgres::NoTls;
 use uuid::Uuid;
 
@@ -9,8 +7,7 @@ use crate::database::database_master;
 use crate::database::db_pool::DbPool;
 use crate::migrations::migration_contracts::MigrationContracts;
 use crate::migrations::migrations::MigrationStruct;
-use crate::migrations::seeder::enter_seed_data_to_roles;
-use crate::model::status_message::StatusMessage;
+use crate::migrations::seeder::{enter_seed_data_to_roles, enter_seed_data_to_users};
 
 fn get_pool() -> Pool {
     let config = ConfigData::new();
@@ -39,7 +36,7 @@ pub fn get_db_pools() -> DbPool {
 }
 
 pub async fn resolve_client(db_pool: &DbPool) -> Client {
-    let client: Result<Client, PoolError> = db_pool.get().await;
+    let client: Result<Client, PoolError> = db_pool.pool.get().await;
 
     let client: Client = match client {
         Ok(client_positive) => client_positive,
@@ -58,12 +55,15 @@ pub async fn may_execute_migrations() {
     match MigrationStruct::may_create_roles_table(&db_pool).await {
         Ok(positive) => {
             println!("role table result : {:?}", positive);
-            enter_seed_data_to_roles(&db_pool, &uuid).await;
+            enter_seed_data_to_roles(&db_pool, &my_uuid).await;
         }
         Err(error) => println!("role table error error is {:?}", error),
     }
     match MigrationStruct::may_create_users_table(&db_pool).await {
-        Ok(positive) => println!("user table result : {:?}", positive),
+        Ok(positive) => {
+            println!("user table result : {:?}", positive);
+            enter_seed_data_to_users(&db_pool, &my_uuid).await;
+        }
         Err(error) => println!("user table error error is {:?}", error),
     }
 }

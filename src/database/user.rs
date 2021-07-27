@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use rocket::State;
 
-use crate::contracts::role_contracts::RoleContracts;
+use crate::contracts::user_contracts::UserContracts;
 use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 use crate::model::role::Role;
@@ -9,12 +9,12 @@ use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
 
 #[async_trait]
-impl RoleContracts for Role {
-    async fn find_role_for(_: User, db_pool: &State<DbPool>) -> Result<Role, StatusMessage> {
+impl UserContracts for Role {
+    async fn find_user_with_email(_: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
         let statement = match client
-            .prepare_cached(&format!("SELECT * FROM roles"))
+            .prepare_cached(&format!("SELECT * FROM users WHERE email"))
             .await {
             Ok(statement_positive) => statement_positive,
             Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
@@ -172,10 +172,11 @@ impl RoleContracts for Role {
         }
 
         if roles.len() != 0 {
-            let role_to_return = roles[0].clone();
-            Ok(
+            // let _: Role = roles[0].clone();
+            /*Ok(
                 role_to_return
-            )
+            )*/
+            panic!();
         } else {
             StatusMessage::bad_request_400_in_result(
                 "Failed to get role".to_owned()
