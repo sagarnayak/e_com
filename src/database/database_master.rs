@@ -63,4 +63,61 @@ pub async fn may_execute_migrations() {
         Ok(positive) => println!("user table result : {:?}", positive),
         Err(error) => println!("user table error error is {:?}", error),
     }
+    match MigrationStruct::may_create_roles_table(&db_pool).await {
+        Ok(positive) => {
+            println!("role table result : {:?}", positive);
+            enter_seed_data_to_roles(&db_pool).await;
+        }
+        Err(error) => println!("role table error error is {:?}", error),
+    }
+}
+
+async fn enter_seed_data_to_roles(db_pool: &DbPool) {
+    let client = match db_pool.pool.get().await {
+        Ok(client_positive) => client_positive,
+        Err(error) => {
+            println!("failed to insert seed data to DB :: {}", error.to_string());
+            panic!();
+        }
+    };
+
+    let statement = match client
+        .prepare_cached(
+            &format!(
+                "INSERT INTO roles (\
+                name,\
+                can_delegate,\
+                path,\
+                read,\
+                write,\
+                edit,\
+                delete,\
+                identifier_required,\
+                enabled\
+                ) \
+                VALUES (\
+                'admin',\
+                true,\
+                '*',\
+                true,\
+                true,\
+                true,\
+                true,\
+                false,\
+                true\
+                )"
+            )
+        )
+        .await {
+        Ok(statement_positive) => statement_positive,
+        Err(error) => panic!(),
+    };
+
+    let results = match client.execute(
+        &statement,
+        &[],
+    ).await {
+        Ok(positive) => positive,
+        Err(error) => panic!()
+    };
 }
