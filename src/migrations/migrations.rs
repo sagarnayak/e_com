@@ -74,8 +74,9 @@ impl MigrationContracts for MigrationStruct {
                     role uuid NOT NULL,\
                     password varchar(200) NOT NULL,\
                     name varchar(100) NOT NULL,\
-                    email_id varchar(100) NOT NULL,\
-                    created timestamptz default CURRENT_TIMESTAMP,\
+                    email_id varchar(100) NOT NULL UNIQUE,\
+                    enabled bool NOT NULL default true,\
+                    created timestamptz default CURRENT_TIMESTAMP NOT NULL,\
                     modified timestamptz,\
                     PRIMARY KEY (id) )"
                 )

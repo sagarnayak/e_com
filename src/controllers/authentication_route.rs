@@ -4,12 +4,14 @@ use rocket::serde::json::Json;
 use rocket::State;
 
 use crate::config_controller::ConfigData;
+use crate::contracts::user_contracts::UserContracts;
 use crate::core::strings::{BAD_REQUEST, UNAUTHORIZED};
 use crate::database::db_pool::DbPool;
 use crate::jwt_master::jwt_master::create_jwt;
 use crate::model::authentication_request::AuthenticationRequest;
 use crate::model::authentication_response::AuthenticationResponse;
 use crate::model::status_message::StatusMessage;
+use crate::model::user::User;
 
 #[post("/authenticate", data = "<authentication_request>")]
 pub async fn authenticate(
@@ -35,8 +37,25 @@ pub async fn authenticate(
     //     }
     // }
 
+    println!("request is :: {:?}",authentication_request);
+
+    let user: User = match User::find_user_with_email(
+        authentication_request.user_email.clone(),
+        db_pool,
+    ).await {
+        Ok(positive) => {
+            positive
+        }
+        Err(error) => {
+            println!("here ...");
+            return StatusMessage::unauthorized_401_with_status_code_in_result(error.message);
+        }
+    };
+
+    println!("got the user :: {:?}", user);
+
     let config_data = ConfigData::new();
-    if authentication_request.user_name == config_data.admin_data.admin_name {
+    if authentication_request.user_email == config_data.admin_data.admin_name {
         return if authentication_request.password == config_data.admin_data.admin_password {
             // let role = Role::find_role_for(db_pool).await;
             match create_jwt(

@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use rocket::State;
+use uuid::Uuid;
 
 use crate::contracts::user_contracts::UserContracts;
 use crate::database::database_master::resolve_client;
@@ -9,177 +10,168 @@ use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
 
 #[async_trait]
-impl UserContracts for Role {
-    async fn find_user_with_email(_: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
+impl UserContracts for User {
+    async fn find_user_with_email(email_id: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
+        let statement_to_send = &format!("SELECT * FROM users WHERE email_id = '{}'", email_id);
+
+        println!("the statement is :: {}", &statement_to_send);
+
         let statement = match client
-            .prepare_cached(&format!("SELECT * FROM users WHERE email"))
+            .prepare_cached(statement_to_send)
             .await {
-            Ok(statement_positive) => statement_positive,
+            Ok(positive) => positive,
             Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
         };
 
         let results = match client.query(&statement, &[]).await {
-            Ok(result_positive) => result_positive,
+            Ok(positive) => positive,
             Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
         };
 
-        let mut roles: Vec<Role> = vec![];
+        let mut results_vec: Vec<User> = vec![];
+
+        println!("got the result :: {:?}", &results);
 
         for row in results {
-            let id: String = match row.try_get(0) {
+            let id: Uuid = match row.try_get(0) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get id ".to_string()),
+                    None => {
+                        println!("failed to get id ");
+                        return StatusMessage::bad_request_400_in_result("failed to get id ".to_string());
+                    }
                 },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+                Err(error) => {
+                    let error_message = error.to_string();
+                    println!("{}", &error_message);
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
             };
-            let derived_from: String = match row.try_get(1) {
+            let role: Uuid = match row.try_get(1) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get derived_from ".to_string()),
+                    None => {
+                        println!("failed to get role ");
+                        return StatusMessage::bad_request_400_in_result("failed to get role ".to_string());
+                    }
                 },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+                Err(error) => {
+                    let error_message = error.to_string();
+                    println!("{}", &error_message);
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
             };
-            let name: String = match row.try_get(2) {
+            let password: String = match row.try_get(2) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get name ".to_string()),
+                    None => {
+                        println!("failed to get password ");
+                        return StatusMessage::bad_request_400_in_result("failed to get password ".to_string());
+                    }
                 },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+                Err(error) => {
+                    let error_message = error.to_string();
+                    println!("{}", &error_message);
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
             };
-            let can_delegate: bool = match row.try_get(3) {
+            let name: String = match row.try_get(3) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate ".to_string()),
+                    None =>{
+                        println!("failed to get name ");
+                        return StatusMessage::bad_request_400_in_result("failed to get name ".to_string());
+                    }
                 },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+                Err(error) => {
+                    let error_message = error.to_string();
+                    println!("{}", &error_message);
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
             };
-            let path: String = match row.try_get(4) {
+            let email_id: String = match row.try_get(4) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get path ".to_string()),
+                    None =>{
+                        println!("failed to get email_id ");
+                        return StatusMessage::bad_request_400_in_result("failed to get email_id ".to_string());
+                    }
                 },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+                Err(error) => {
+                    let error_message = error.to_string();
+                    println!("{}", &error_message);
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
             };
-            let read: bool = match row.try_get(5) {
+            let enabled: bool = match row.try_get(5) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get read ".to_string()),
+                    None => {
+                        println!("failed to get enabled ");
+                        return StatusMessage::bad_request_400_in_result("failed to get enabled ".to_string());
+                    }
                 },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+                Err(error) => {
+                    let error_message = error.to_string();
+                    println!("{}", &error_message);
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
             };
-            let write: bool = match row.try_get(6) {
+            let created: DateTime<Utc> = match row.try_get(6) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get write ".to_string()),
+                    None => {
+                        println!("failed to get created ");
+                        return StatusMessage::bad_request_400_in_result("failed to get created ".to_string());
+                    }
                 },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+                Err(error) => {
+                    let error_message = error.to_string();
+                    println!("{}", &error_message);
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
             };
-            let edit: bool = match row.try_get(7) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(7) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get edit ".to_string()),
+                    None => {
+                        println!("failed to get modified ");
+                        None
+                    }
                 },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let delete: bool = match row.try_get(8) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get delete ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let identifier_required: bool = match row.try_get(9) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get identifier_required ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let identifier: String = match row.try_get(10) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get identifier ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let where_replacement: String = match row.try_get(11) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get where_replacement ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let enabled: bool = match row.try_get(12) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get enabled ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let valid_from: DateTime<Utc> = match row.try_get(13) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get valid_from ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let valid_to: DateTime<Utc> = match row.try_get(14) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get valid_to ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let created: DateTime<Utc> = match row.try_get(15) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get created ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let modified: DateTime<Utc> = match row.try_get(16) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get modified ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+                Err(error) => {
+                    let error_message = error.to_string();
+                    println!("{}", &error_message);
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
             };
 
-            let role = Role {
-                id,
-                derived_from,
+            let user = User {
+                id: id.to_hyphenated().to_string(),
+                role: role.to_hyphenated().to_string(),
+                password,
                 name,
-                can_delegate,
-                path,
-                read,
-                write,
-                edit,
-                delete,
-                identifier_required,
-                identifier,
-                where_replacement,
+                email_id,
                 enabled,
-                valid_from,
-                valid_to,
                 created,
                 modified,
             };
 
-            roles.push(role);
+            println!("Extracted a user : {:?}", &user);
+
+            results_vec.push(user);
         }
 
-        if roles.len() != 0 {
-            // let _: Role = roles[0].clone();
-            /*Ok(
-                role_to_return
-            )*/
-            panic!();
+        if results_vec.len() != 0 {
+            let user: User = results_vec[0].clone();
+            Ok(
+                user
+            )
         } else {
             StatusMessage::bad_request_400_in_result(
-                "Failed to get role".to_owned()
+                "User not found.".to_owned()
             )
         }
     }
