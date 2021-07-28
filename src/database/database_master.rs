@@ -54,16 +54,16 @@ pub async fn may_execute_migrations() {
     let my_uuid = Uuid::new_v4();
     match MigrationStruct::may_create_roles_table(&db_pool).await {
         Ok(positive) => {
-            println!("role table result : {:?}", positive);
+            println!("may create table roles completed.");
             enter_seed_data_to_roles(&db_pool, &my_uuid).await;
         }
-        Err(error) => println!("role table error error is {:?}", error),
+        Err(error) => println!("role table creation error error is {:?}", error),
     }
     match MigrationStruct::may_create_users_table(&db_pool).await {
         Ok(positive) => {
-            println!("user table result : {:?}", positive);
+            println!("may create table users completed.");
             enter_seed_data_to_users(&db_pool, &my_uuid).await;
         }
-        Err(error) => println!("user table error error is {:?}", error),
+        Err(error) => println!("user table creation error error is {:?}", error),
     }
 }

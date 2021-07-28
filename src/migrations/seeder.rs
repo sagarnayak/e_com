@@ -6,12 +6,13 @@ use crate::core::constants::B_CRYPT_COST;
 use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 
-pub async fn enter_seed_data_to_roles(db_pool: &DbPool, id: &Uuid) {
+async fn should_proceed_inserting_seed_data(db_pool: &DbPool, table_name: &str) -> bool {
     let client = resolve_client(db_pool).await;
 
     let statement = match client.prepare_cached(
         &format!(
-            "SELECT * FROM roles LIMIT 1"
+            "SELECT * FROM {} LIMIT 1",
+            table_name
         )
     ).await {
         Ok(positive) => positive,
@@ -28,7 +29,18 @@ pub async fn enter_seed_data_to_roles(db_pool: &DbPool, id: &Uuid) {
         Err(_) => panic!()
     };
 
-    println!("the result is ::: {:?}", result.len());
+    result.len() == 0
+}
+
+pub async fn enter_seed_data_to_roles(db_pool: &DbPool, id: &Uuid) {
+    let client = resolve_client(db_pool).await;
+
+    println!("trying to insert seed data to roles");
+
+    if !should_proceed_inserting_seed_data(db_pool, "roles").await {
+        println!("rejected inserting seed data to roles");
+        return;
+    }
 
     let statement = match client
         .prepare_cached(
@@ -72,10 +84,20 @@ pub async fn enter_seed_data_to_roles(db_pool: &DbPool, id: &Uuid) {
         Ok(positive) => positive,
         Err(_) => panic!()
     };
+
+    println!("seed data inserted to roles");
 }
 
 pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid) {
     let client = resolve_client(db_pool).await;
+
+    println!("trying to insert seed data to users");
+
+    if !should_proceed_inserting_seed_data(db_pool, "users").await {
+        println!("rejected inserting seed data to users");
+        return;
+    }
+
     let config_data = ConfigData::new();
 
     let hashed = hash(config_data.admin_data.admin_password, B_CRYPT_COST);
@@ -108,7 +130,6 @@ pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid) {
         .await {
         Ok(statement_positive) => statement_positive,
         Err(error) => {
-            println!("got an error while seeding user table : {}", error.to_string());
             panic!();
         }
     };
@@ -120,4 +141,6 @@ pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid) {
         Ok(positive) => positive,
         Err(_) => panic!()
     };
+
+    println!("seed data inserted to users");
 }
