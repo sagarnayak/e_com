@@ -108,7 +108,7 @@ impl MigrationContracts for MigrationStruct {
                     post_allowed bool NOT NULL default false,\
                     put_allowed bool NOT NULL default false,\
                     delete_allowed bool NOT NULL default false,\
-                    where_replacement varchar(100) NOT NULL,\
+                    where_replacement varchar(100),\
                     created timestamptz default CURRENT_TIMESTAMP,\
                     modified timestamptz,\
                     PRIMARY KEY (id) )"
