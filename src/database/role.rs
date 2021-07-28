@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use rocket::State;
+use uuid::Uuid;
 
 use crate::contracts::role_contracts::RoleContracts;
 use crate::database::database_master::resolve_client;
@@ -10,11 +11,13 @@ use crate::model::user::User;
 
 #[async_trait]
 impl RoleContracts for Role {
-    async fn find_role_for(_: User, db_pool: &State<DbPool>) -> Result<Role, StatusMessage> {
+    async fn find_role_for(user: &User, db_pool: &State<DbPool>) -> Result<Role, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
+        let statement_to_send = &format!("SELECT * FROM roles WHERE id = '{}'", user.role);
+
         let statement = match client
-            .prepare_cached(&format!("SELECT * FROM roles"))
+            .prepare_cached(statement_to_send)
             .await {
             Ok(statement_positive) => statement_positive,
             Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
@@ -28,17 +31,17 @@ impl RoleContracts for Role {
         let mut roles: Vec<Role> = vec![];
 
         for row in results {
-            let id: String = match row.try_get(0) {
+            let id: Uuid = match row.try_get(0) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get id ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let derived_from: String = match row.try_get(1) {
+            let derived_from: Option<Uuid> = match row.try_get(1) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get derived_from ".to_string()),
+                    None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
@@ -98,17 +101,17 @@ impl RoleContracts for Role {
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let identifier: String = match row.try_get(10) {
+            let identifier: Option<String> = match row.try_get(10) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get identifier ".to_string()),
+                    None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let where_replacement: String = match row.try_get(11) {
+            let where_replacement: Option<String> = match row.try_get(11) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get where_replacement ".to_string()),
+                    None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
@@ -119,38 +122,43 @@ impl RoleContracts for Role {
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let valid_from: DateTime<Utc> = match row.try_get(13) {
+            let valid_from: Option<DateTime<Utc>> = match row.try_get(13) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get valid_from ".to_string()),
+                    None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let valid_to: DateTime<Utc> = match row.try_get(14) {
+            let valid_to: Option<DateTime<Utc>> = match row.try_get(14) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get valid_to ".to_string()),
+                    None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let created: DateTime<Utc> = match row.try_get(15) {
+            let created: Option<DateTime<Utc>> = match row.try_get(15) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get created ".to_string()),
+                    None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let modified: DateTime<Utc> = match row.try_get(16) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(16) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get modified ".to_string()),
+                    None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
 
-            let role = Role {
-                id,
-                derived_from,
+            /*let role = Role {
+                id: id.to_hyphenated().to_string(),
+                derived_from:
+                if derived_from.is_some() {
+                    Some(derived_from.unwrap().to_hyphenated().to_string())
+                } else {
+                    None
+                },
                 name,
                 can_delegate,
                 path,
@@ -168,7 +176,7 @@ impl RoleContracts for Role {
                 modified,
             };
 
-            roles.push(role);
+            roles.push(role);*/
         }
 
         if roles.len() != 0 {

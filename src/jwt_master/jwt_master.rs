@@ -5,15 +5,19 @@ use jsonwebtoken::errors::ErrorKind;
 use crate::config_controller::ConfigData;
 use crate::core::strings::FAILED_TO_CREATE_JWT;
 use crate::model::claims::Claims;
+use crate::model::role::Role;
 use crate::model::status_message::StatusMessage;
+use crate::model::user::User;
 
 pub fn create_jwt(
     exp_after_secs: i64,
-    owner: String,
+    user: &User,
+    role: &Role,
 ) -> Result<String, StatusMessage> {
     let my_claims =
         Claims {
-            owner,
+            owner: user.first_name.clone(),
+            role: role.clone(),
             exp: (Utc::now().timestamp() + exp_after_secs) as usize,
         };
 

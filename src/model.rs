@@ -4,3 +4,6 @@ pub mod authentication_request;
 pub mod authentication_response;
 pub mod claims;
 pub mod role;
+pub mod mobile_number;
+pub mod path;
+pub mod auth_roles_cross_paths;

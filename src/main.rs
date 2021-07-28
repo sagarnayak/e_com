@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate rocket;
 
-
 use crate::core::rocket_master::rocket;
 use crate::database::database_master::may_execute_migrations;
 

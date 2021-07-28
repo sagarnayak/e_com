@@ -1,0 +1,28 @@
+08:16:13 [ERROR] Bright red error
+08:16:13 [INFO] This only appears in the log file
+08:16:13 [WARN] Configured for debug.
+08:16:13 [WARN] address: [1;49;39m127.0.0.1[0m
+08:16:13 [WARN] port: [1;49;39m8000[0m
+08:16:13 [WARN] workers: [1;49;39m4[0m
+08:16:13 [WARN] ident: [1;49;39mRocket[0m
+08:16:13 [WARN] keep-alive: [1;49;39m5s[0m
+08:16:13 [WARN] limits: [1;49;39mbytes = 8KiB, data-form = 2MiB, file = 1MiB, form = 32KiB, json = 1MiB, msgpack = 1MiB, string = 8KiB[0m
+08:16:13 [WARN] tls: [1;49;39mdisabled[0m
+08:16:13 [WARN] temp dir: [1;49;39mC:\Users\SAGAR\AppData\Local\Temp\[0m
+08:16:13 [WARN] log level: [1;49;39mnormal[0m
+08:16:13 [WARN] cli colors: [1;49;39mtrue[0m
+08:16:13 [WARN] shutdown: [1;49;39mctrlc = true, force = true, grace = 2s, mercy = 3s[0m
+08:16:13 [WARN] [35mRoutes[0m:
+08:16:13 [WARN] [36m([0m[37mme[0m[36m)[0m [32mGET[0m [34m/me[0m
+08:16:13 [WARN] [36m([0m[37mauthenticate[0m[36m)[0m [32mPOST[0m [34m/authenticate[0m
+08:16:13 [WARN] [35mCatchers[0m:
+08:16:13 [WARN] [36m([0m[37mfor_404[0m[36m)[0m [34m404[0m
+08:16:13 [WARN] [36m([0m[37mnot_found[0m[36m)[0m [34mdefault[0m
+08:16:13 [WARN] [35mFairings[0m:
+08:16:13 [WARN] [1;49;39mGET/POST Counter[0m ([1;34mrequest, response[0m)
+08:16:13 [WARN] [1;49;39mShield[0m ([1;34mliftoff, response, singleton[0m)
+08:16:13 [INFO] [35mShield[0m:
+08:16:13 [INFO] Permissions-Policy: [49;39minterest-cohort=()[0m
+08:16:13 [INFO] X-Content-Type-Options: [49;39mnosniff[0m
+08:16:13 [INFO] X-Frame-Options: [49;39mSAMEORIGIN[0m
+08:16:13 [WARN] [1;49;39mRocket has launched from[0m [1;4;49;39mhttp://127.0.0.1:8000[0m

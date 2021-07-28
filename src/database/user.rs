@@ -16,8 +16,6 @@ impl UserContracts for User {
 
         let statement_to_send = &format!("SELECT * FROM users WHERE email_id = '{}'", email_id);
 
-        println!("the statement is :: {}", &statement_to_send);
-
         let statement = match client
             .prepare_cached(statement_to_send)
             .await {
@@ -32,20 +30,17 @@ impl UserContracts for User {
 
         let mut results_vec: Vec<User> = vec![];
 
-        println!("got the result :: {:?}", &results);
 
         for row in results {
             let id: Uuid = match row.try_get(0) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
-                        println!("failed to get id ");
                         return StatusMessage::bad_request_400_in_result("failed to get id ".to_string());
                     }
                 },
                 Err(error) => {
                     let error_message = error.to_string();
-                    println!("{}", &error_message);
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
@@ -53,13 +48,11 @@ impl UserContracts for User {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
-                        println!("failed to get role ");
                         return StatusMessage::bad_request_400_in_result("failed to get role ".to_string());
                     }
                 },
                 Err(error) => {
                     let error_message = error.to_string();
-                    println!("{}", &error_message);
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
@@ -67,41 +60,35 @@ impl UserContracts for User {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
-                        println!("failed to get password ");
                         return StatusMessage::bad_request_400_in_result("failed to get password ".to_string());
                     }
                 },
                 Err(error) => {
                     let error_message = error.to_string();
-                    println!("{}", &error_message);
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
             let name: String = match row.try_get(3) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None =>{
-                        println!("failed to get name ");
+                    None => {
                         return StatusMessage::bad_request_400_in_result("failed to get name ".to_string());
                     }
                 },
                 Err(error) => {
                     let error_message = error.to_string();
-                    println!("{}", &error_message);
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
             let email_id: String = match row.try_get(4) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None =>{
-                        println!("failed to get email_id ");
+                    None => {
                         return StatusMessage::bad_request_400_in_result("failed to get email_id ".to_string());
                     }
                 },
                 Err(error) => {
                     let error_message = error.to_string();
-                    println!("{}", &error_message);
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
@@ -109,13 +96,11 @@ impl UserContracts for User {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
-                        println!("failed to get enabled ");
                         return StatusMessage::bad_request_400_in_result("failed to get enabled ".to_string());
                     }
                 },
                 Err(error) => {
                     let error_message = error.to_string();
-                    println!("{}", &error_message);
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
@@ -123,13 +108,11 @@ impl UserContracts for User {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
-                        println!("failed to get created ");
                         return StatusMessage::bad_request_400_in_result("failed to get created ".to_string());
                     }
                 },
                 Err(error) => {
                     let error_message = error.to_string();
-                    println!("{}", &error_message);
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
@@ -137,18 +120,16 @@ impl UserContracts for User {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
-                        println!("failed to get modified ");
                         None
                     }
                 },
                 Err(error) => {
                     let error_message = error.to_string();
-                    println!("{}", &error_message);
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
 
-            let user = User {
+            /*let user = User {
                 id: id.to_hyphenated().to_string(),
                 role: role.to_hyphenated().to_string(),
                 password,
@@ -159,9 +140,7 @@ impl UserContracts for User {
                 modified,
             };
 
-            println!("Extracted a user : {:?}", &user);
-
-            results_vec.push(user);
+            results_vec.push(user);*/
         }
 
         if results_vec.len() != 0 {
