@@ -13,7 +13,7 @@ use crate::model::user::User;
 
 #[async_trait]
 impl PathContracts for Path {
-    async fn fetch_all(db_pool: &State<DbPool>) -> Result<Vec<Path>, StatusMessage> {
+    async fn fetch_all(db_pool: &DbPool) -> Result<Vec<Path>, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
         let statement_to_send = &format!("SELECT * FROM paths");

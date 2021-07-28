@@ -8,5 +8,5 @@ use crate::model::user::User;
 
 #[async_trait]
 pub trait PathContracts {
-    async fn fetch_all(db_pool: DbPool) -> Result<Vec<Path>, StatusMessage>;
+    async fn fetch_all(db_pool: &DbPool) -> Result<Vec<Path>, StatusMessage>;
 }
