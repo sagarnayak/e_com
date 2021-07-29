@@ -8,3 +8,4 @@ pub mod mobile_number;
 pub mod path;
 pub mod auth_roles_cross_paths;
 pub mod expired_blocked_token;
+pub mod authorization_exception;

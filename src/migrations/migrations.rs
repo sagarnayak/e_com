@@ -247,4 +247,43 @@ impl MigrationContracts for MigrationStruct {
 
         Ok(format!("done :: {}", results))
     }
+
+    async fn may_create_authorization_exceptions_table(
+        db_pool: &DbPool
+    ) -> Result<String, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement = match client
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS authorization_exceptions(\
+                    id uuid default gen_random_uuid(),\
+                    blocked_user_id varchar(100) NOT NULL,\
+                    valid_from timestamptz,\
+                    valid_to timestamptz,\
+                    reason varchar(200),\
+                    created timestamptz default CURRENT_TIMESTAMP NOT NULL,\
+                    modified timestamptz,\
+                    PRIMARY KEY (id) )"
+                )
+            )
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            ),
+        };
+
+        let results = match client.execute(
+            &statement,
+            &[],
+        ).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            )
+        };
+
+        Ok(format!("done :: {}", results))
+    }
 }
