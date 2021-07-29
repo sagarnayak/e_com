@@ -7,7 +7,7 @@ use crate::database::database_master;
 use crate::database::db_pool::DbPool;
 use crate::migrations::migration_contracts::MigrationContracts;
 use crate::migrations::migrations::MigrationStruct;
-use crate::migrations::seeder::{enter_seed_data_to_paths, enter_seed_data_to_roles, enter_seed_data_to_users};
+use crate::migrations::seeder::{enter_seed_data_to_auth_roles_cross_paths, enter_seed_data_to_paths, enter_seed_data_to_roles, enter_seed_data_to_users};
 
 fn get_pool() -> Pool {
     let config = ConfigData::new();
@@ -69,6 +69,7 @@ pub async fn may_execute_migrations() {
     match MigrationStruct::may_create_auth_roles_cross_paths_table(&db_pool).await {
         Ok(positive) => {
             println!("may create table auth_roles_cross_paths completed.");
+            enter_seed_data_to_auth_roles_cross_paths(&db_pool).await;
         }
         Err(error) => println!("auth_roles_cross_paths table creation error error is {:?}", error),
     }

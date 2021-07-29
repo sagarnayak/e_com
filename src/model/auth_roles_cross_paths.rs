@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct AuthRolesCrossPaths {
     pub id: String,
     pub auth_role: String,
+    pub path_id: String,
     pub path: String,
     pub get_allowed: bool,
     pub post_allowed: bool,

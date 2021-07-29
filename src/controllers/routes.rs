@@ -11,10 +11,10 @@ pub fn get_paths() -> Vec<Path> {
         Path {
             id: None,
             path: "/authenticate".to_string(),
-            get: false,
-            post: true,
-            put: false,
-            delete: false,
+            get_available: false,
+            post_available: true,
+            put_available: false,
+            delete_available: false,
             created: None,
             modified: None,
         }

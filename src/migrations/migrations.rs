@@ -103,6 +103,7 @@ impl MigrationContracts for MigrationStruct {
                     "CREATE TABLE IF NOT EXISTS auth_roles_cross_paths(\
                     id uuid default gen_random_uuid(),\
                     auth_role varchar(200) NOT NULL,\
+                    path_id varchar(200) NOT NULL,\
                     path varchar(200) NOT NULL,\
                     get_allowed bool NOT NULL default false,\
                     post_allowed bool NOT NULL default false,\
