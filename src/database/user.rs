@@ -7,7 +7,6 @@ use crate::contracts::user_contracts::UserContracts;
 use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 use crate::model::mobile_number::MobileNumber;
-use crate::model::role::Role;
 use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
 

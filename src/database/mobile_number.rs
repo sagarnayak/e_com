@@ -3,13 +3,10 @@ use rocket::State;
 use uuid::Uuid;
 
 use crate::contracts::mobile_number_contracts::MobileNumberContracts;
-use crate::contracts::role_contracts::RoleContracts;
 use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 use crate::model::mobile_number::MobileNumber;
-use crate::model::role::Role;
 use crate::model::status_message::StatusMessage;
-use crate::model::user::User;
 
 #[async_trait]
 impl MobileNumberContracts for MobileNumber {
