@@ -86,4 +86,10 @@ pub async fn may_execute_migrations() {
         }
         Err(error) => println!("user table creation error error is {:?}", error),
     }
+    match MigrationStruct::may_create_expired_blocked_tokens_table(&db_pool).await {
+        Ok(positive) => {
+            println!("may create table expired_blocked_tokens completed.");
+        }
+        Err(error) => println!("expired_blocked_tokens table creation error error is {:?}", error),
+    }
 }

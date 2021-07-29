@@ -211,4 +211,40 @@ impl MigrationContracts for MigrationStruct {
 
         Ok(format!("done :: {}", results))
     }
+
+    async fn may_create_expired_blocked_tokens_table(
+        db_pool: &DbPool
+    ) -> Result<String, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement = match client
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS expired_blocked_tokens(\
+                    id uuid default gen_random_uuid(),\
+                    token varchar(500) NOT NULL,\
+                    reason varchar(200),\
+                    created timestamptz default CURRENT_TIMESTAMP NOT NULL,\
+                    PRIMARY KEY (id) )"
+                )
+            )
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            ),
+        };
+
+        let results = match client.execute(
+            &statement,
+            &[],
+        ).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            )
+        };
+
+        Ok(format!("done :: {}", results))
+    }
 }
