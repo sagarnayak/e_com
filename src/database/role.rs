@@ -59,91 +59,35 @@ impl RoleContracts for Role {
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let path: String = match row.try_get(4) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get path ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let read: bool = match row.try_get(5) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get read ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let write: bool = match row.try_get(6) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get write ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let edit: bool = match row.try_get(7) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get edit ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let delete: bool = match row.try_get(8) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get delete ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let identifier_required: bool = match row.try_get(9) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => return StatusMessage::bad_request_400_in_result("failed to get identifier_required ".to_string()),
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let identifier: Option<String> = match row.try_get(10) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => None,
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let where_replacement: Option<String> = match row.try_get(11) {
-                Ok(positive) => match positive {
-                    Some(positive_inner) => positive_inner,
-                    None => None,
-                },
-                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-            };
-            let enabled: bool = match row.try_get(12) {
+            let enabled: bool = match row.try_get(4) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get enabled ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let valid_from: Option<DateTime<Utc>> = match row.try_get(13) {
+            let valid_from: Option<DateTime<Utc>> = match row.try_get(5) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let valid_to: Option<DateTime<Utc>> = match row.try_get(14) {
+            let valid_to: Option<DateTime<Utc>> = match row.try_get(6) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let created: Option<DateTime<Utc>> = match row.try_get(15) {
+            let created: DateTime<Utc> = match row.try_get(7) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
-                    None => None,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get enabled ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let modified: Option<DateTime<Utc>> = match row.try_get(16) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(8) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
@@ -151,7 +95,7 @@ impl RoleContracts for Role {
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
 
-            /*let role = Role {
+            let role = Role {
                 id: id.to_hyphenated().to_string(),
                 derived_from:
                 if derived_from.is_some() {
@@ -161,14 +105,6 @@ impl RoleContracts for Role {
                 },
                 name,
                 can_delegate,
-                path,
-                read,
-                write,
-                edit,
-                delete,
-                identifier_required,
-                identifier,
-                where_replacement,
                 enabled,
                 valid_from,
                 valid_to,
@@ -176,7 +112,7 @@ impl RoleContracts for Role {
                 modified,
             };
 
-            roles.push(role);*/
+            roles.push(role);
         }
 
         if roles.len() != 0 {

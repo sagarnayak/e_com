@@ -147,6 +147,8 @@ impl MigrationContracts for MigrationStruct {
                     id uuid default gen_random_uuid(),\
                     country_code varchar(200) NOT NULL,\
                     number varchar(100) NOT NULL,\
+                    created timestamptz default CURRENT_TIMESTAMP,\
+                    modified timestamptz,\
                     PRIMARY KEY (id) )"
                 )
             )
