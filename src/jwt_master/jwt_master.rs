@@ -4,6 +4,7 @@ use jsonwebtoken::errors::ErrorKind;
 
 use crate::config_controller::ConfigData;
 use crate::core::strings::FAILED_TO_CREATE_JWT;
+use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 use crate::model::claims::Claims;
 use crate::model::role::Role;
 use crate::model::status_message::StatusMessage;
@@ -12,12 +13,12 @@ use crate::model::user::User;
 pub fn create_jwt(
     exp_after_secs: i64,
     user: &User,
-    role: &Role,
+    auth_roles_cross_paths: Vec<AuthRolesCrossPaths>,
 ) -> Result<String, StatusMessage> {
     let my_claims =
         Claims {
             owner: user.first_name.clone(),
-            role: role.clone(),
+            authorizations: auth_roles_cross_paths,
             exp: (Utc::now().timestamp() + exp_after_secs) as usize,
         };
 

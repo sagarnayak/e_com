@@ -5,11 +5,13 @@ use rocket::serde::json::Json;
 use rocket::State;
 
 use crate::config_controller::ConfigData;
+use crate::contracts::auth_roles_cross_paths_contracts::AuthRolesCrossPathsContracts;
 use crate::contracts::role_contracts::RoleContracts;
 use crate::contracts::user_contracts::UserContracts;
 use crate::core::strings::{BAD_REQUEST, UNAUTHORIZED};
 use crate::database::db_pool::DbPool;
 use crate::jwt_master::jwt_master::create_jwt;
+use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 use crate::model::authentication_request::AuthenticationRequest;
 use crate::model::authentication_response::AuthenticationResponse;
 use crate::model::role::Role;
@@ -53,10 +55,22 @@ pub async fn authenticate(
         }
     };
 
+    let auth_roles_cross_paths: Vec<AuthRolesCrossPaths> = match AuthRolesCrossPaths::find_auth_roles_cross_paths_for_role_id(
+        &role.id,
+        db_pool,
+    ).await {
+        Ok(positive) => {
+            positive
+        }
+        Err(error) => {
+            return StatusMessage::unauthorized_401_with_status_code_in_result(error.message);
+        }
+    };
+
     match create_jwt(
         60,
         &user,
-        &role,
+        auth_roles_cross_paths,
     ) {
         Ok(positive) => status::Custom(
             Status::Ok,
