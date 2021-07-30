@@ -1,9 +1,6 @@
-use std::io::Cursor;
-
-use rocket::http::ContentType;
 use rocket::http::Status;
-use rocket::request::Request;
-use rocket::response::{self, Responder, Response};
+use rocket::response::status;
+use rocket::serde::json::Json;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -14,26 +11,127 @@ pub struct StatusMessage {
 }
 
 impl StatusMessage {
-    pub fn bad_req(message: String) -> StatusMessage {
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // customizable
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    pub fn custom(message: String, status: Status) -> StatusMessage {
         StatusMessage {
-            code: Status::BadRequest.code,
+            code: status.code,
             message,
         }
     }
-    pub fn bad_req_default() -> StatusMessage {
-        StatusMessage {
-            code: Status::BadRequest.code,
-            message: "Getting some error ...".to_string(),
-        }
+    pub fn custom_with_status_code(message: String, status: Status)
+                                   -> status::Custom<Json<StatusMessage>> {
+        status::Custom(
+            status,
+            Json(
+                StatusMessage::custom(message, status)
+            ),
+        )
     }
-}
+    pub fn custom_with_status_code_in_result<T>(message: String, status: Status)
+                                                -> status::Custom<Result<T, Json<StatusMessage>>> {
+        status::Custom(
+            status,
+            Err(
+                Json(
+                    StatusMessage::custom(message, status)
+                )
+            ),
+        )
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
-impl<'r> Responder<'r, 'static> for StatusMessage {
-    fn respond_to(self, _: &'r Request<'_>) -> response::Result<'static> {
-        let json_string = rocket::serde::json::serde_json::to_string(&self).unwrap();
-        Response::build()
-            .sized_body(json_string.len(), Cursor::new(json_string))
-            .header(ContentType::JSON)
-            .ok()
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // models to copy
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // pub fn bad_request_400_in_result<T>(message: String) -> Result<T, StatusMessage> {
+    //     Err(
+    //         StatusMessage::custom(
+    //             message,
+    //             Status::BadRequest,
+    //         )
+    //     )
+    // }
+    // pub fn bad_request_400_with_status_code(message: String)
+    //                                         -> status::Custom<Json<StatusMessage>> {
+    //     StatusMessage::custom_with_status_code(
+    //         message,
+    //         Status::BadRequest,
+    //     )
+    // }
+    // pub fn bad_request_400_with_status_code_in_result<T>(message: String)
+    //                                                      -> status::Custom<Result<T, Json<StatusMessage>>> {
+    //     StatusMessage::custom_with_status_code_in_result(
+    //         message,
+    //         Status::BadRequest,
+    //     )
+    // }
+
+    // for 200
+    // pub fn ok_200_in_result<T>(message: String) -> Result<StatusMessage, T> {
+    //     Ok(
+    //         StatusMessage::custom(
+    //             message,
+    //             Status::Ok,
+    //         )
+    //     )
+    // }
+    // pub fn ok_200_with_status_code(message: String)
+    //                                -> status::Custom<Json<StatusMessage>> {
+    //     StatusMessage::custom_with_status_code(
+    //         message,
+    //         Status::Ok,
+    //     )
+    // }
+    // pub fn ok_200_with_status_code_in_result<T>(message: String)
+    //                                             -> status::Custom<Result<Json<StatusMessage>, T>> {
+    //     status::Custom(
+    //         Status::Ok,
+    //         Ok(
+    //             Json(
+    //                 StatusMessage::custom(message, Status::Ok)
+    //             )
+    //         ),
+    //     )
+    // }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // derived methods
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // for 400
+    pub fn bad_request_400_in_result<T>(message: String) -> Result<T, StatusMessage> {
+        Err(
+            StatusMessage::custom(
+                message,
+                Status::BadRequest,
+            )
+        )
     }
+    pub fn bad_request_400_with_status_code_in_result<T>(message: String)
+                                                         -> status::Custom<Result<T, Json<StatusMessage>>> {
+        StatusMessage::custom_with_status_code_in_result(
+            message,
+            Status::BadRequest,
+        )
+    }
+
+    // for 404
+    pub fn not_found_404_with_status_code(message: String)
+                                          -> status::Custom<Json<StatusMessage>> {
+        StatusMessage::custom_with_status_code(
+            message,
+            Status::NotFound,
+        )
+    }
+    pub fn unauthorized_401_with_status_code_in_result<T>(message: String)
+                                                          -> status::Custom<Result<T, Json<StatusMessage>>> {
+        StatusMessage::custom_with_status_code_in_result(
+            message,
+            Status::Unauthorized,
+        )
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 }

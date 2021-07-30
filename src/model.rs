@@ -1,4 +1,11 @@
 pub mod status_message;
 pub mod user;
-pub mod password_verification_req;
-pub mod jwt_validation_req;
+pub mod authentication_request;
+pub mod authentication_response;
+pub mod claims;
+pub mod role;
+pub mod mobile_number;
+pub mod path;
+pub mod auth_roles_cross_paths;
+pub mod expired_blocked_token;
+pub mod authorization_exception;

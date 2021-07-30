@@ -9,12 +9,13 @@ edition = "2018"
 rocket = { version = "0.5.0-rc.1", features = ["json"] }
 rand = "0.8.4"
 serde = { version = "1.0.64", features = ["derive"] }
-postgres = "0.19.1"
+postgres = { version = "0.19.1", features = ["with-chrono-0_4", "with-uuid-0_8"] }
 deadpool-postgres = "0.9.0"
 tokio = "1.8.1"
 tokio-postgres = "0.7.2"
 async-trait = "0.1.50"
 bcrypt = "0.10.0"
 jsonwebtoken = "7.2.0"
-chrono = "0.4.19"
+chrono = { version = "0.4.19", features = ["serde"] }
 clokwerk = "0.3.5"
+uuid = { version = "0.8.2", features = ["serde", "v4"] }

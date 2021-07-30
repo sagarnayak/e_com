@@ -1,14 +1,13 @@
 use deadpool_postgres::{Client, Config, ManagerConfig, Pool, PoolError, RecyclingMethod};
-use rocket::serde::json::Json;
-use rocket::State;
 use tokio_postgres::NoTls;
+use uuid::Uuid;
 
 use crate::config_controller::ConfigData;
+use crate::database::database_master;
 use crate::database::db_pool::DbPool;
 use crate::migrations::migration_contracts::MigrationContracts;
 use crate::migrations::migrations::MigrationStruct;
-use crate::model::status_message::StatusMessage;
-use crate::database::database_master;
+use crate::migrations::seeder::{enter_seed_data_to_auth_roles_cross_paths, enter_seed_data_to_paths, enter_seed_data_to_roles, enter_seed_data_to_users};
 
 fn get_pool() -> Pool {
     let config = ConfigData::new();
@@ -36,28 +35,67 @@ pub fn get_db_pools() -> DbPool {
     }
 }
 
-pub async fn resolve_client(db_pool: &State<DbPool>) -> Result<Client, Json<StatusMessage>> {
+pub async fn resolve_client(db_pool: &DbPool) -> Client {
     let client: Result<Client, PoolError> = db_pool.pool.get().await;
 
     let client: Client = match client {
         Ok(client_positive) => client_positive,
         Err(pool_error) => {
             println!("we are getting an error {}", pool_error);
-            return Err(
-                Json(
-                    StatusMessage {
-                        code: 400,
-                        message: pool_error.to_string(),
-                    }
-                )
-            );
+            panic!();
         }
     };
 
-    Ok(client)
+    client
 }
 
 pub async fn may_execute_migrations() {
-    let db_pool  = database_master::get_db_pools();
-    MigrationStruct::may_create_users_table(db_pool).await;
+    let db_pool = database_master::get_db_pools();
+    match MigrationStruct::may_create_paths_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table paths completed.");
+            enter_seed_data_to_paths(&db_pool).await;
+        }
+        Err(error) => println!("role table creation error error is {:?}", error),
+    }
+    let my_uuid = Uuid::new_v4();
+    match MigrationStruct::may_create_roles_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table roles completed.");
+            enter_seed_data_to_roles(&db_pool, &my_uuid).await;
+        }
+        Err(error) => println!("role table creation error error is {:?}", error),
+    }
+    match MigrationStruct::may_create_auth_roles_cross_paths_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table auth_roles_cross_paths completed.");
+            enter_seed_data_to_auth_roles_cross_paths(&db_pool).await;
+        }
+        Err(error) => println!("auth_roles_cross_paths table creation error error is {:?}", error),
+    }
+    match MigrationStruct::may_create_mobile_numbers_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table mobile_numbers completed.");
+        }
+        Err(error) => println!("mobile_numbers table creation error error is {:?}", error),
+    }
+    match MigrationStruct::may_create_users_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table users completed.");
+            enter_seed_data_to_users(&db_pool, &my_uuid).await;
+        }
+        Err(error) => println!("user table creation error error is {:?}", error),
+    }
+    match MigrationStruct::may_create_expired_blocked_tokens_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table expired_blocked_tokens completed.");
+        }
+        Err(error) => println!("expired_blocked_tokens table creation error error is {:?}", error),
+    }
+    match MigrationStruct::may_create_authorization_exceptions_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table authorization_exceptions completed.");
+        }
+        Err(error) => println!("authorization_exceptions table creation error error is {:?}", error),
+    }
 }
