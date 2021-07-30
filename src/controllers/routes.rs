@@ -1,7 +1,6 @@
 use rocket::Route;
 
 use crate::controllers::authentication_route::authenticate;
-use crate::controllers::profile::me;
 use crate::model::path::Path;
 
 pub fn get_paths() -> Vec<Path> {

@@ -6,7 +6,6 @@ use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 use crate::model::path::Path;
 use crate::model::status_message::StatusMessage;
-use crate::model::user::User;
 
 #[async_trait]
 impl PathContracts for Path {

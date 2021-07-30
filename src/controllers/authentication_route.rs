@@ -1,14 +1,12 @@
 use rocket::http::Status;
 use rocket::response::status;
-use rocket::serde::Deserialize;
 use rocket::serde::json::Json;
 use rocket::State;
 
-use crate::config_controller::ConfigData;
 use crate::contracts::auth_roles_cross_paths_contracts::AuthRolesCrossPathsContracts;
 use crate::contracts::role_contracts::RoleContracts;
 use crate::contracts::user_contracts::UserContracts;
-use crate::core::strings::{BAD_REQUEST, UNAUTHORIZED};
+use crate::core::strings::BAD_REQUEST;
 use crate::database::db_pool::DbPool;
 use crate::jwt_master::jwt_master::create_jwt;
 use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;

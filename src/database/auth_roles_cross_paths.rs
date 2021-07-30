@@ -5,9 +5,7 @@ use crate::contracts::auth_roles_cross_paths_contracts::AuthRolesCrossPathsContr
 use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
-use crate::model::role::Role;
 use crate::model::status_message::StatusMessage;
-use crate::model::user::User;
 
 #[async_trait]
 impl AuthRolesCrossPathsContracts for AuthRolesCrossPaths {

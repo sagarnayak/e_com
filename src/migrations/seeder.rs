@@ -184,7 +184,7 @@ pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid) {
         )
         .await {
         Ok(statement_positive) => statement_positive,
-        Err(error) => {
+        Err(_) => {
             panic!();
         }
     };

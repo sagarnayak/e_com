@@ -6,7 +6,6 @@ use crate::config_controller::ConfigData;
 use crate::core::strings::FAILED_TO_CREATE_JWT;
 use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 use crate::model::claims::Claims;
-use crate::model::role::Role;
 use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
 
@@ -50,10 +49,8 @@ pub fn validate_jwt(jwt: String) -> (bool, bool) {
     ) {
         Ok(_) => {
             is_valid = true;
-            is_expired = false;
         }
         Err(err) => {
-            is_valid = false;
             println!("the error kind is {}", &err);
             match *err.kind() {
                 ErrorKind::InvalidToken => {}
