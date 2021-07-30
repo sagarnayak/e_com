@@ -6,6 +6,6 @@ use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 #[serde(rename_all = "camelCase")]
 pub struct Claims {
     pub owner: String,
-    pub authorizations: Vec<AuthRolesCrossPaths>,
+    pub authorizations_minified: Vec<String>,
     pub exp: usize,
 }

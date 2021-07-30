@@ -6,6 +6,7 @@ use crate::core::strings::{AUTHENTICATION_FAILURE, AUTHORIZATION_FAILURE, EXPIRE
 use crate::jwt_master::jwt_master::{extract_jwt, validate_jwt};
 use crate::model::claims::Claims;
 use crate::model::status_message::StatusMessage;
+use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AuthorizationGuard {
@@ -35,26 +36,27 @@ impl<'r> FromRequest<'r> for AuthorizationGuard {
             let method: &Method = &req.method();
             let path = &req.uri().to_string();
 
-            for auth in claims.authorizations.clone() {
-                if &auth.path == path {
+            for auth in claims.authorizations_minified.clone() {
+                let auth_expanded = AuthRolesCrossPaths::full_version(auth);
+                if &auth_expanded.path == path {
                     match method {
                         Method::Get => {
-                            if auth.get_allowed {
+                            if auth_expanded.get_allowed {
                                 return true;
                             }
                         }
                         Method::Post => {
-                            if auth.post_allowed {
+                            if auth_expanded.post_allowed {
                                 return true;
                             }
                         }
                         Method::Put => {
-                            if auth.put_allowed {
+                            if auth_expanded.put_allowed {
                                 return true;
                             }
                         }
                         Method::Delete => {
-                            if auth.delete_allowed {
+                            if auth_expanded.delete_allowed {
                                 return true;
                             }
                         }
