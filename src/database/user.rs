@@ -214,4 +214,41 @@ impl UserContracts for User {
             )
         }
     }
+    async fn find_user_with_id(id: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement_to_send = &format!("SELECT * FROM users WHERE id = '{}'", id);
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.query(&statement, &[]).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results_to_send = match User::convert_results_to_models(&results, db_pool).await {
+            Ok(positive) => {
+                positive
+            }
+            Err(error) => {
+                return Err(error);
+            }
+        };
+
+        if results_to_send.len() != 0 {
+            let res = results_to_send[0].clone();
+            Ok(
+                res
+            )
+        } else {
+            StatusMessage::bad_request_400_in_result(
+                "User not found.".to_owned()
+            )
+        }
+    }
 }

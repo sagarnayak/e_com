@@ -66,7 +66,7 @@ pub async fn authenticate(
     };
 
     match create_jwt(
-        60,
+        60 * 60,
         &user,
         auth_roles_cross_paths,
     ) {
