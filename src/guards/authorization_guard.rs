@@ -1,19 +1,20 @@
-use rocket::http::Status;
+use rocket::http::{Method, Status};
 use rocket::request::{FromRequest, Outcome, Request};
 use serde::{Deserialize, Serialize};
 
-use crate::core::strings::{AUTHENTICATION_FAILURE, EXPIRED_AUTH_TOKEN};
+use crate::core::strings::{AUTHENTICATION_FAILURE, AUTHORIZATION_FAILURE, EXPIRED_AUTH_TOKEN};
 use crate::jwt_master::jwt_master::{extract_jwt, validate_jwt};
 use crate::model::claims::Claims;
 use crate::model::status_message::StatusMessage;
+use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AuthenticationGuard {
-    pub claims: Claims,
+pub struct AuthorizationGuard {
+    allowed: bool,
 }
 
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for AuthenticationGuard {
+impl<'r> FromRequest<'r> for AuthorizationGuard {
     type Error = StatusMessage;
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, StatusMessage> {
@@ -31,6 +32,42 @@ impl<'r> FromRequest<'r> for AuthenticationGuard {
             (validated_result.0, Some(validated_result.1), bearer_replaced.to_owned())
         }
 
+        fn is_allowed(claims: &Claims, req: &Request) -> bool {
+            let method: &Method = &req.method();
+            let path = &req.uri().to_string();
+
+            for auth in claims.authorizations_minified.clone() {
+                let auth_expanded = AuthRolesCrossPaths::full_version(auth);
+                if &auth_expanded.path == path {
+                    match method {
+                        Method::Get => {
+                            if auth_expanded.get_allowed {
+                                return true;
+                            }
+                        }
+                        Method::Post => {
+                            if auth_expanded.post_allowed {
+                                return true;
+                            }
+                        }
+                        Method::Put => {
+                            if auth_expanded.put_allowed {
+                                return true;
+                            }
+                        }
+                        Method::Delete => {
+                            if auth_expanded.delete_allowed {
+                                return true;
+                            }
+                        }
+                        _ => return false
+                    }
+                }
+            }
+
+            return false;
+        }
+
         match req.headers().get_one("Authorization") {
             None => Outcome::Failure((Status::Unauthorized, StatusMessage { code: 401, message: AUTHENTICATION_FAILURE.to_string() })),
             Some(key) => {
@@ -38,11 +75,23 @@ impl<'r> FromRequest<'r> for AuthenticationGuard {
                 if validated_result.0 {
                     match extract_jwt(&validated_result.2) {
                         Ok(claims) => {
-                            Outcome::Success(
-                                AuthenticationGuard {
-                                    claims
-                                }
-                            )
+                            if is_allowed(
+                                &claims,
+                                req,
+                            ) {
+                                Outcome::Success(
+                                    AuthorizationGuard {
+                                        allowed: true
+                                    }
+                                )
+                            } else {
+                                Outcome::Failure(
+                                    (
+                                        Status::Forbidden,
+                                        StatusMessage { code: 403, message: AUTHORIZATION_FAILURE.to_string() }
+                                    )
+                                )
+                            }
                         }
                         Err(status_message) => {
                             Outcome::Failure(

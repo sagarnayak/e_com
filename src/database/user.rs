@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use postgres::Row;
 use rocket::State;
 use uuid::Uuid;
 
@@ -10,26 +11,9 @@ use crate::model::mobile_number::MobileNumber;
 use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
 
-#[async_trait]
-impl UserContracts for User {
-    async fn find_user_with_email(email_id: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
-        let client = resolve_client(db_pool).await;
-
-        let statement_to_send = &format!("SELECT * FROM users WHERE email_id = '{}'", email_id);
-
-        let statement = match client
-            .prepare_cached(statement_to_send)
-            .await {
-            Ok(positive) => positive,
-            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-        };
-
-        let results = match client.query(&statement, &[]).await {
-            Ok(positive) => positive,
-            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-        };
-
-        let mut results_vec: Vec<User> = vec![];
+impl User {
+    async fn convert_results_to_models(results: &Vec<Row>, db_pool: &State<DbPool>) -> Result<Vec<User>, StatusMessage> {
+        let mut results_to_send: Vec<User> = vec![];
 
         for row in results {
             let id: Uuid = match row.try_get(0) {
@@ -184,13 +168,82 @@ impl UserContracts for User {
                 modified,
             };
 
-            results_vec.push(user);
+            results_to_send.push(user);
         }
 
-        if results_vec.len() != 0 {
-            let user: User = results_vec[0].clone();
+        Ok(results_to_send)
+    }
+}
+
+#[async_trait]
+impl UserContracts for User {
+    async fn find_user_with_email(email_id: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement_to_send = &format!("SELECT * FROM users WHERE email_id = '{}'", email_id);
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.query(&statement, &[]).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results_to_send = match User::convert_results_to_models(&results, db_pool).await {
+            Ok(positive) => {
+                positive
+            }
+            Err(error) => {
+                return Err(error);
+            }
+        };
+
+        if results_to_send.len() != 0 {
+            let res = results_to_send[0].clone();
             Ok(
-                user
+                res
+            )
+        } else {
+            StatusMessage::bad_request_400_in_result(
+                "User not found.".to_owned()
+            )
+        }
+    }
+    async fn find_user_with_id(id: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement_to_send = &format!("SELECT * FROM users WHERE id = '{}'", id);
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.query(&statement, &[]).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results_to_send = match User::convert_results_to_models(&results, db_pool).await {
+            Ok(positive) => {
+                positive
+            }
+            Err(error) => {
+                return Err(error);
+            }
+        };
+
+        if results_to_send.len() != 0 {
+            let res = results_to_send[0].clone();
+            Ok(
+                res
             )
         } else {
             StatusMessage::bad_request_400_in_result(

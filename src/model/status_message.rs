@@ -118,6 +118,15 @@ impl StatusMessage {
         )
     }
 
+    //for 403
+    pub fn forbidden_403_with_status_code_in_result<T>(message: String)
+                                                       -> status::Custom<Result<T, Json<StatusMessage>>> {
+        StatusMessage::custom_with_status_code_in_result(
+            message,
+            Status::Forbidden,
+        )
+    }
+
     // for 404
     pub fn not_found_404_with_status_code(message: String)
                                           -> status::Custom<Json<StatusMessage>> {
