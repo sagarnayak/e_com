@@ -28,7 +28,6 @@ pub fn create_jwt(
         };
 
     let mut header = Header::default();
-    header.kid = Some("key identifier".to_string());
     header.alg = Algorithm::HS512;
     let token = match encode(
         &header,
