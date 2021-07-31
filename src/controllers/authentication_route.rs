@@ -1,3 +1,4 @@
+use bcrypt::verify;
 use rocket::http::Status;
 use rocket::response::status;
 use rocket::serde::json::Json;
@@ -6,7 +7,7 @@ use rocket::State;
 use crate::contracts::auth_roles_cross_paths_contracts::AuthRolesCrossPathsContracts;
 use crate::contracts::role_contracts::RoleContracts;
 use crate::contracts::user_contracts::UserContracts;
-use crate::core::strings::BAD_REQUEST;
+use crate::core::strings::{AUTHENTICATION_FAILURE, BAD_REQUEST};
 use crate::database::db_pool::DbPool;
 use crate::jwt_master::jwt_master::create_jwt;
 use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
@@ -40,6 +41,22 @@ pub async fn authenticate(
             return StatusMessage::unauthorized_401_with_status_code_in_result(error.message);
         }
     };
+
+    println!("hashed :: {} :: req :: {}", &user.password, &authentication_request.password);
+
+    match verify(
+        &authentication_request.password,
+        &user.password,
+    ) {
+        Ok(positive) => {
+            if !positive {
+                return StatusMessage::unauthorized_401_with_status_code_in_result(AUTHENTICATION_FAILURE.to_string());
+            }
+        }
+        Err(_) => {
+            return StatusMessage::unauthorized_401_with_status_code_in_result(AUTHENTICATION_FAILURE.to_string());
+        }
+    }
 
     let role: Role = match Role::find_role_for(
         &user,
