@@ -50,11 +50,15 @@ pub async fn authenticate(
     ) {
         Ok(positive) => {
             if !positive {
-                return StatusMessage::unauthorized_401_with_status_code_in_result(AUTHENTICATION_FAILURE.to_string());
+                return StatusMessage::unauthorized_401_with_status_code_in_result(
+                    AUTHENTICATION_FAILURE.to_string()
+                );
             }
         }
         Err(_) => {
-            return StatusMessage::unauthorized_401_with_status_code_in_result(AUTHENTICATION_FAILURE.to_string());
+            return StatusMessage::unauthorized_401_with_status_code_in_result(
+                AUTHENTICATION_FAILURE.to_string()
+            );
         }
     }
 
@@ -70,17 +74,18 @@ pub async fn authenticate(
         }
     };
 
-    let auth_roles_cross_paths: Vec<AuthRolesCrossPaths> = match AuthRolesCrossPaths::find_auth_roles_cross_paths_for_role_id(
-        &role.id,
-        db_pool,
-    ).await {
-        Ok(positive) => {
-            positive
-        }
-        Err(error) => {
-            return StatusMessage::unauthorized_401_with_status_code_in_result(error.message);
-        }
-    };
+    let auth_roles_cross_paths: Vec<AuthRolesCrossPaths> =
+        match AuthRolesCrossPaths::find_auth_roles_cross_paths_for_role_id(
+            &role.id,
+            db_pool,
+        ).await {
+            Ok(positive) => {
+                positive
+            }
+            Err(error) => {
+                return StatusMessage::unauthorized_401_with_status_code_in_result(error.message);
+            }
+        };
 
     match create_jwt(
         60 * 60,
