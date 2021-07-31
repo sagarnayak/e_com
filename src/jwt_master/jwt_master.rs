@@ -1,7 +1,6 @@
 use chrono::Utc;
 use jsonwebtoken::{Algorithm, decode, DecodingKey, encode, EncodingKey, Header, Validation};
 use jsonwebtoken::errors::ErrorKind;
-use rocket::http::ext::IntoCollection;
 
 use crate::config_controller::ConfigData;
 use crate::core::strings::FAILED_TO_CREATE_JWT;

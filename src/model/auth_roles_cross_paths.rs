@@ -1,8 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::contracts::auth_roles_cross_paths_contracts::AuthRolesCrossPathsContracts;
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthRolesCrossPaths {
@@ -32,19 +30,19 @@ impl AuthRolesCrossPaths {
             if self.put_allowed { "1" } else { "0" },
             if self.delete_allowed { "1" } else { "0" },
             match &self.where_replacement {
-                Some(positive)=>{
+                Some(positive) => {
                     positive.to_owned()
-                },
-                None=>{
+                }
+                None => {
                     "0".to_owned()
                 }
             },
             self.created,
             match &self.modified {
-                Some(positive)=>{
+                Some(positive) => {
                     positive.to_owned().to_string()
-                },
-                None=>{
+                }
+                None => {
                     "0".to_owned()
                 }
             },
