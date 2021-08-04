@@ -65,7 +65,7 @@ pub async fn get_my_role(
         Status::Ok,
         Ok(
             Json(
-               role
+                role
             )
         ),
     )

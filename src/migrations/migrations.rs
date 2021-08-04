@@ -109,6 +109,10 @@ impl MigrationContracts for MigrationStruct {
                     post_allowed bool NOT NULL default false,\
                     put_allowed bool NOT NULL default false,\
                     delete_allowed bool NOT NULL default false,\
+                    can_delegate_get bool NOT NULL default false,\
+                    can_delegate_post bool NOT NULL default false,\
+                    can_delegate_put bool NOT NULL default false,\
+                    can_delegate_delete bool NOT NULL default false,\
                     where_replacement varchar(100),\
                     created timestamptz default CURRENT_TIMESTAMP,\
                     modified timestamptz,\

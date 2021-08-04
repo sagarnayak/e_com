@@ -11,6 +11,7 @@ mod controllers;
 mod core;
 mod jwt_master;
 mod contracts;
+mod responder;
 mod model;
 mod guards;
 

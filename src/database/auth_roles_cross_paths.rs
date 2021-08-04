@@ -69,21 +69,49 @@ impl AuthRolesCrossPaths {
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let where_replacement: Option<String> = match row.try_get(8) {
+            let can_delegate_get: bool = match row.try_get(8) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_get ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let can_delegate_post: bool = match row.try_get(9) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_post ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let can_delegate_put: bool = match row.try_get(10) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_put ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let can_delegate_delete: bool = match row.try_get(11) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_delete ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let where_replacement: Option<String> = match row.try_get(12) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let created: DateTime<Utc> = match row.try_get(9) {
+            let created: DateTime<Utc> = match row.try_get(13) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get created ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let modified: Option<DateTime<Utc>> = match row.try_get(10) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(14) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
@@ -93,15 +121,19 @@ impl AuthRolesCrossPaths {
 
             let res = AuthRolesCrossPaths {
                 id: id.to_hyphenated().to_string(),
-                auth_role: auth_role.to_hyphenated().to_string(),
-                path_id: path_id.to_hyphenated().to_string(),
+                auth_role: Some(auth_role.to_hyphenated().to_string()),
+                path_id: Some(path_id.to_hyphenated().to_string()),
                 path,
                 get_allowed,
                 post_allowed,
                 put_allowed,
                 delete_allowed,
+                can_delegate_get,
+                can_delegate_post,
+                can_delegate_put,
+                can_delegate_delete,
                 where_replacement,
-                created,
+                created: Some(created),
                 modified,
             };
 
