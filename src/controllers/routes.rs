@@ -2,6 +2,7 @@ use rocket::Route;
 
 use crate::controllers::auth_roles_cross_paths_route::get_available_paths;
 use crate::controllers::authentication_route::authenticate;
+use crate::controllers::roles_route::create_role;
 use crate::controllers::roles_route::get_my_role;
 use crate::model::path::Path;
 
@@ -55,5 +56,6 @@ pub fn get_routes() -> Vec<Route> {
        authenticate,
         get_available_paths,
         get_my_role,
+        create_role,
     ]
 }

@@ -180,4 +180,42 @@ impl RoleContracts for Role {
             )
         }
     }
+
+    async fn add_role(db_pool: &DbPool) -> Result<Role, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement_to_send = &format!("SELECT * FROM roles WHERE name = 'admin'");
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.query(&statement, &[]).await {
+            Ok(result_positive) => result_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let roles = match Role::convert_results_to_models(&results).await {
+            Ok(positive) => {
+                positive
+            }
+            Err(error) => {
+                return Err(error);
+            }
+        };
+
+        if roles.len() != 0 {
+            let role_to_return = roles[0].clone();
+            Ok(
+                role_to_return
+            )
+        } else {
+            StatusMessage::bad_request_400_in_result(
+                "Failed to get role".to_owned()
+            )
+        }
+    }
 }

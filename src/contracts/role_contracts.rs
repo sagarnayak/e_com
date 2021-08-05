@@ -10,4 +10,5 @@ use crate::model::user::User;
 pub trait RoleContracts {
     async fn find_role_for(user: &User, db_pool: &State<DbPool>) -> Result<Role, StatusMessage>;
     async fn find_role_for_admin(db_pool: &DbPool) -> Result<Role, StatusMessage>;
+    async fn add_role(db_pool: &DbPool) -> Result<Role, StatusMessage>;
 }

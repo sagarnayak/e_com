@@ -42,8 +42,6 @@ pub async fn authenticate(
         }
     };
 
-    println!("hashed :: {} :: req :: {}", &user.password, &authentication_request.password);
-
     match verify(
         &authentication_request.password,
         &user.password,

@@ -12,6 +12,7 @@ use crate::model::role::Role;
 use crate::model::role_request::RoleRequest;
 use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
+use crate::core::strings::BAD_REQUEST;
 
 #[get("/role")]
 pub async fn get_my_role(
@@ -74,7 +75,7 @@ pub async fn get_my_role(
 
 #[post("/role", data = "<role_request>")]
 pub fn create_role(
-    role_request: Json<RoleRequest>,
+    role_request: Option<Json<RoleRequest>>,
     authentication_guard: Result<AuthenticationGuard, StatusMessage>,
     authorization_guard: Result<AuthorizationGuard, StatusMessage>,
     db_pool: &State<DbPool>,
@@ -99,6 +100,15 @@ pub fn create_role(
             );
         }
     }
+
+    let role_request = match role_request {
+        Some(positive) => positive,
+        None => return StatusMessage::bad_request_400_with_status_code_in_result(
+            BAD_REQUEST.to_string()
+        ),
+    };
+
+    println!("got role request : {:?}",role_request);
 
     StatusMessage::ok_200_with_status_code_in_result("Role is created".to_owned())
 }
