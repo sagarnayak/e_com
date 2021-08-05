@@ -100,6 +100,18 @@ impl StatusMessage {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // derived methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    //for 200
+    pub fn ok_200_with_status_code_in_result<T>(message: String)
+                                                -> status::Custom<Result<Json<StatusMessage>, T>> {
+        status::Custom(
+            Status::Ok,
+            Ok(
+                Json(
+                    StatusMessage::custom(message, Status::Ok)
+                )
+            ),
+        )
+    }
 
     // for 400
     pub fn bad_request_400_in_result<T>(message: String) -> Result<T, StatusMessage> {

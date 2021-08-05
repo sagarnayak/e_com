@@ -39,7 +39,7 @@ pub fn get_paths() -> Vec<Path> {
             id: None,
             path: "/role".to_string(),
             get_available: true,
-            post_available: false,
+            post_available: true,
             put_available: false,
             delete_available: false,
             created: None,

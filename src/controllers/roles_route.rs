@@ -9,6 +9,7 @@ use crate::database::db_pool::DbPool;
 use crate::guards::authentication_guard::AuthenticationGuard;
 use crate::guards::authorization_guard::AuthorizationGuard;
 use crate::model::role::Role;
+use crate::model::role_request::RoleRequest;
 use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
 
@@ -69,4 +70,35 @@ pub async fn get_my_role(
             )
         ),
     )
+}
+
+#[post("/role", data = "<role_request>")]
+pub fn create_role(
+    role_request: Json<RoleRequest>,
+    authentication_guard: Result<AuthenticationGuard, StatusMessage>,
+    authorization_guard: Result<AuthorizationGuard, StatusMessage>,
+    db_pool: &State<DbPool>,
+)
+    -> status::Custom<Result<Json<StatusMessage>, Json<StatusMessage>>> {
+    let authentication_guard = match authentication_guard {
+        Ok(positive) => {
+            positive
+        }
+        Err(error) => {
+            return StatusMessage::unauthorized_401_with_status_code_in_result(
+                error.message
+            );
+        }
+    };
+
+    match authorization_guard {
+        Ok(_) => {}
+        Err(error) => {
+            return StatusMessage::forbidden_403_with_status_code_in_result(
+                error.message
+            );
+        }
+    }
+
+    StatusMessage::ok_200_with_status_code_in_result("Role is created".to_owned())
 }
