@@ -5,3 +5,4 @@ pub const FAILED_TO_CREATE_JWT: &str = "We are facing some problem in authentica
 pub const AUTHENTICATION_FAILURE: &str = "Authentication failure.";
 pub const AUTHORIZATION_FAILURE: &str = "Authorization failure.";
 pub const EXPIRED_AUTH_TOKEN: &str = "Authentication token is expired.";
+pub const FORBIDDEN: &str = "You are not allowed for the operation.";

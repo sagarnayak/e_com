@@ -5,6 +5,7 @@ use rocket::State;
 
 use crate::contracts::role_contracts::RoleContracts;
 use crate::contracts::user_contracts::UserContracts;
+use crate::core::strings::{BAD_REQUEST, FORBIDDEN};
 use crate::database::db_pool::DbPool;
 use crate::guards::authentication_guard::AuthenticationGuard;
 use crate::guards::authorization_guard::AuthorizationGuard;
@@ -12,7 +13,6 @@ use crate::model::role::Role;
 use crate::model::role_request::RoleRequest;
 use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
-use crate::core::strings::BAD_REQUEST;
 
 #[get("/role")]
 pub async fn get_my_role(
@@ -101,6 +101,40 @@ pub fn create_role(
         }
     }
 
+    let user = match User::find_user_with_id(
+        authentication_guard.claims.owner,
+        &db_pool,
+    ).await {
+        Ok(positive) => {
+            positive
+        }
+        Err(error) => {
+            return StatusMessage::bad_request_400_with_status_code_in_result(
+                error.message
+            );
+        }
+    };
+
+    let user_own_role = match Role::find_role_for(
+        &user,
+        &db_pool,
+    ).await {
+        Ok(positive) => {
+            positive
+        }
+        Err(error) => {
+            return StatusMessage::bad_request_400_with_status_code_in_result(
+                error.message
+            );
+        }
+    };
+
+    if !&user_own_role.can_delegate {
+        return StatusMessage::forbidden_403_with_status_code_in_result(
+            FORBIDDEN.to_string()
+        );
+    }
+
     let role_request = match role_request {
         Some(positive) => positive,
         None => return StatusMessage::bad_request_400_with_status_code_in_result(
@@ -108,7 +142,10 @@ pub fn create_role(
         ),
     };
 
-    println!("got role request : {:?}",role_request);
+    //creata a request to crata teh role
+    Role::add_role(use)
+
+    println!("got role request : {:?}", role_request);
 
     StatusMessage::ok_200_with_status_code_in_result("Role is created".to_owned())
 }

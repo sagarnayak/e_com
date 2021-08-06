@@ -181,10 +181,10 @@ impl RoleContracts for Role {
         }
     }
 
-    async fn add_role(db_pool: &DbPool) -> Result<Role, StatusMessage> {
+    async fn add_role(user: &User, role: &Role, db_pool: &DbPool) -> Result<Role, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
-        let statement_to_send = &format!("SELECT * FROM roles WHERE name = 'admin'");
+        let statement_to_send = &format!("INSERT INTO roles (derived_from,name,can_delegate,enabled,valid_from,valid_to)");
 
         let statement = match client
             .prepare_cached(statement_to_send)
