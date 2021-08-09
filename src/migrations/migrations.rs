@@ -62,7 +62,7 @@ impl MigrationContracts for MigrationStruct {
                     "CREATE TABLE IF NOT EXISTS roles(\
                     id uuid default gen_random_uuid(),\
                     derived_from uuid,\
-                    name varchar(100) NOT NULL,\
+                    name varchar(100) NOT NULL UNIQUE,\
                     can_delegate bool NOT NULL default false,\
                     enabled bool NOT NULL default true,\
                     valid_from timestamptz,\

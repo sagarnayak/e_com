@@ -74,7 +74,7 @@ pub async fn get_my_role(
 }
 
 #[post("/role", data = "<role_request>")]
-pub fn create_role(
+pub async fn create_role(
     role_request: Option<Json<RoleRequest>>,
     authentication_guard: Result<AuthenticationGuard, StatusMessage>,
     authorization_guard: Result<AuthorizationGuard, StatusMessage>,
@@ -142,10 +142,17 @@ pub fn create_role(
         ),
     };
 
-    //creata a request to crata teh role
-    Role::add_role(use)
-
-    println!("got role request : {:?}", role_request);
-
-    StatusMessage::ok_200_with_status_code_in_result("Role is created".to_owned())
+    return match Role::add_role(&user_own_role, &role_request, &db_pool).await {
+        Ok(positive) => {
+            println!("the result is {}", positive);
+            StatusMessage::ok_200_with_status_code_in_result(
+                "Role is created".to_owned()
+            )
+        }
+        Err(error) => {
+            StatusMessage::bad_request_400_with_status_code_in_result(
+                error.message
+            )
+        }
+    };
 }

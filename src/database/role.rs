@@ -4,9 +4,11 @@ use rocket::State;
 use uuid::Uuid;
 
 use crate::contracts::role_contracts::RoleContracts;
+use crate::core::postgres_error_master::get_postgres_error_string;
 use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 use crate::model::role::Role;
+use crate::model::role_request::RoleRequest;
 use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
 
@@ -181,10 +183,34 @@ impl RoleContracts for Role {
         }
     }
 
-    async fn add_role(user: &User, role: &Role, db_pool: &DbPool) -> Result<Role, StatusMessage> {
+    async fn add_role(user_role: &Role, role: &RoleRequest, db_pool: &DbPool) -> Result<u64, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
-        let statement_to_send = &format!("INSERT INTO roles (derived_from,name,can_delegate,enabled,valid_from,valid_to)");
+        let mut columns_statement = "INSERT INTO roles (derived_from,name,can_delegate,enabled".to_owned();
+
+        if role.valid_from.is_some() {
+            columns_statement.push_str(",valid_from");
+        }
+        if role.valid_to.is_some() {
+            columns_statement.push_str(",valid_to");
+        }
+        columns_statement.push_str(") ");
+
+        let mut values_statement = format!(
+            "VALUES ('{}','{}',{},{}", &user_role.id, &role.name, &role.can_delegate, &role.enabled
+        );
+
+        if role.valid_from.is_some() {
+            values_statement.push_str(&format!(",{}", role.valid_from.unwrap()))
+        }
+        if role.valid_to.is_some() {
+            values_statement.push_str(&format!(",{}", role.valid_to.unwrap()))
+        }
+        values_statement.push_str(")");
+
+        let statement_to_send = &format!(
+            "{} {}", columns_statement, values_statement
+        );
 
         let statement = match client
             .prepare_cached(statement_to_send)
@@ -193,28 +219,22 @@ impl RoleContracts for Role {
             Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
         };
 
-        let results = match client.query(&statement, &[]).await {
+        let results = match client.execute(&statement, &[]).await {
             Ok(result_positive) => result_positive,
-            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-        };
-
-        let roles = match Role::convert_results_to_models(&results).await {
-            Ok(positive) => {
-                positive
-            }
             Err(error) => {
-                return Err(error);
+                return StatusMessage::bad_request_400_in_result(
+                    get_postgres_error_string(error.as_db_error())
+                );
             }
         };
 
-        if roles.len() != 0 {
-            let role_to_return = roles[0].clone();
+        if results != 0 {
             Ok(
-                role_to_return
+                results
             )
         } else {
             StatusMessage::bad_request_400_in_result(
-                "Failed to get role".to_owned()
+                "Failed to add role".to_owned()
             )
         }
     }
