@@ -201,15 +201,23 @@ impl RoleContracts for Role {
         );
 
         if role.valid_from.is_some() {
-            values_statement.push_str(&format!(",{}", role.valid_from.unwrap()))
+            values_statement.push_str(&format!(",'{}'", role.valid_from.unwrap()))
         }
         if role.valid_to.is_some() {
-            values_statement.push_str(&format!(",{}", role.valid_to.unwrap()))
+            values_statement.push_str(&format!(",'{}'", role.valid_to.unwrap()))
         }
         values_statement.push_str(")");
 
         let statement_to_send = &format!(
             "{} {}", columns_statement, values_statement
+        );
+
+        println!(
+            "the columns are : {}",&columns_statement
+        );
+
+        println!(
+            "the values are : {}",&values_statement
         );
 
         let statement = match client
