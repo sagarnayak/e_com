@@ -263,8 +263,6 @@ impl RoleContracts for Role {
             &offset,
         );
 
-        println!("the statement is :: {}",&statement_to_send);
-
         let statement = match client
             .prepare_cached(statement_to_send)
             .await {
@@ -276,8 +274,6 @@ impl RoleContracts for Role {
             Ok(result_positive) => result_positive,
             Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
         };
-
-        println!("here 1");
 
         let roles = match Role::convert_results_to_models(&results).await {
             Ok(positive) => {

@@ -7,8 +7,6 @@ use crate::model::authentication_response::AuthenticationResponse;
 impl<'r> Responder<'r, 'static> for AuthenticationResponse {
     fn respond_to(self, _: &'r Request<'_>) -> response::Result<'static> {
 
-        println!("here ...");
-
         Response::build()
             .raw_header("Authorization", format!("Bearer {}", self.jwt))
             .ok()

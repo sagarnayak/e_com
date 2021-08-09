@@ -109,7 +109,6 @@ impl User {
                 },
                 Err(error) => {
                     let error_message = error.to_string();
-                    println!("the error at enabled is :: {:?}", &error_message);
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };

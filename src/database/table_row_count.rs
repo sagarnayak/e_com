@@ -116,7 +116,6 @@ impl TableRowsCountContracts for TableRowsCount {
                 let count: i64 = match count_row.try_get(0) {
                     Ok(count_positive) => count_positive,
                     Err(error) => {
-                        println!("here .. {}", &error.to_string());
                         return StatusMessage::bad_request_400_in_result(error.to_string());
                     }
                 };
@@ -160,7 +159,6 @@ impl TableRowsCountContracts for TableRowsCount {
             .await {
             Ok(statement_positive) => statement_positive,
             Err(error) => {
-                println!(">>> {}", &error.to_string());
                 return StatusMessage::bad_request_400_in_result(error.to_string());
             }
         };
@@ -212,7 +210,6 @@ impl TableRowsCountContracts for TableRowsCount {
                 positive
             }
             Err(error) => {
-                println!(" >>> {}", &error.message);
                 return Err(error);
             }
         };

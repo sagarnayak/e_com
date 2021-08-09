@@ -56,7 +56,6 @@ pub fn validate_jwt(jwt: &str) -> (bool, bool) {
             is_valid = true;
         }
         Err(err) => {
-            println!("the error kind is {}", &err);
             match *err.kind() {
                 ErrorKind::InvalidToken => {}
                 ErrorKind::InvalidIssuer => {}
@@ -81,7 +80,6 @@ pub fn extract_jwt(key_to_decode: &str) -> Result<Claims, StatusMessage> {
     ) {
         Ok(c) => Ok(c.claims),
         Err(error) => {
-            println!("the error is :: {}", error);
             StatusMessage::bad_request_400_in_result("Failed to extract data from JWT".to_string())
         }
     };
