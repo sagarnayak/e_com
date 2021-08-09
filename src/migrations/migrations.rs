@@ -12,6 +12,42 @@ pub struct MigrationStruct;
 
 #[async_trait]
 impl MigrationContracts for MigrationStruct {
+    async fn may_create_table_rows_count_table(db_pool: &DbPool) -> Result<String, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement = match client
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS table_rows_counts(\
+                    id uuid default gen_random_uuid(),\
+                    table_name varchar(100) NOT NULL,\
+                    rows integer NOT NULL,\
+                    where_condition varchar(100),\
+                    created timestamptz default CURRENT_TIMESTAMP,\
+                    modified timestamptz,\
+                    PRIMARY KEY (id) )"
+                )
+            )
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            ),
+        };
+
+        let results = match client.execute(
+            &statement,
+            &[],
+        ).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            )
+        };
+
+        Ok(format!("done :: {}", results))
+    }
+
     async fn may_create_paths_table(
         db_pool: &DbPool
     ) -> Result<String, StatusMessage> {

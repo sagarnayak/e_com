@@ -10,3 +10,6 @@ pub mod path;
 pub mod auth_roles_cross_paths;
 pub mod expired_blocked_token;
 pub mod authorization_exception;
+pub mod auth_roles_cross_paths_request;
+pub mod page_response;
+pub mod table_rows_count;

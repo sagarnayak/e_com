@@ -4,12 +4,15 @@ use rocket::State;
 use uuid::Uuid;
 
 use crate::contracts::role_contracts::RoleContracts;
+use crate::contracts::table_rows_count_contracts::TableRowsCountContracts;
 use crate::core::postgres_error_master::get_postgres_error_string;
 use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
+use crate::model::page_response::PageResponse;
 use crate::model::role::Role;
 use crate::model::role_request::RoleRequest;
 use crate::model::status_message::StatusMessage;
+use crate::model::table_rows_count::TableRowsCount;
 use crate::model::user::User;
 
 impl Role {
@@ -212,14 +215,6 @@ impl RoleContracts for Role {
             "{} {}", columns_statement, values_statement
         );
 
-        println!(
-            "the columns are : {}",&columns_statement
-        );
-
-        println!(
-            "the values are : {}",&values_statement
-        );
-
         let statement = match client
             .prepare_cached(statement_to_send)
             .await {
@@ -245,5 +240,83 @@ impl RoleContracts for Role {
                 "Failed to add role".to_owned()
             )
         }
+    }
+
+    async fn find_roles_created_by_me(
+        role: &Role,
+        page_number: &u32,
+        page_size: &u32,
+        db_pool: &State<DbPool>,
+    ) -> Result<PageResponse<Role>, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let offset = if page_number.eq(&1) {
+            0
+        } else {
+            page_size * page_number
+        };
+
+        let statement_to_send = &format!(
+            "SELECT * FROM roles WHERE derived_from = '{}' LIMIT {} OFFSET {}",
+            &role.id,
+            &page_size,
+            &offset,
+        );
+
+        println!("the statement is :: {}",&statement_to_send);
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.query(&statement, &[]).await {
+            Ok(result_positive) => result_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        println!("here 1");
+
+        let roles = match Role::convert_results_to_models(&results).await {
+            Ok(positive) => {
+                positive
+            }
+            Err(error) => {
+                return Err(error);
+            }
+        };
+
+        let where_condition_string =
+            format!("derived_from = '{}'", &role.id);
+
+        let total_count = match TableRowsCount::find_count(
+            "roles",
+            &Some(where_condition_string),
+            &db_pool,
+        ).await {
+            Ok(positive) => {
+                positive
+            }
+            Err(error) => {
+                return StatusMessage::bad_request_400_in_result(
+                    error.message
+                );
+            }
+        };
+
+        let first_page: u32 = 1;
+
+        Ok(
+            PageResponse {
+                data: roles,
+                previous_page_available: page_number.clone() != first_page,
+                next_page_available: (page_size * page_number) < total_count,
+                page_size: page_size.clone(),
+                page_number: page_number.clone(),
+                total_items: total_count,
+            }
+        )
     }
 }

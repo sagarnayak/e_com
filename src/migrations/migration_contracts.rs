@@ -5,6 +5,7 @@ use crate::model::status_message::StatusMessage;
 
 #[async_trait]
 pub trait MigrationContracts {
+    async fn may_create_table_rows_count_table(db_pool: &DbPool) -> Result<String, StatusMessage>;
     async fn may_create_paths_table(db_pool: &DbPool) -> Result<String, StatusMessage>;
     async fn may_create_roles_table(db_pool: &DbPool) -> Result<String, StatusMessage>;
     async fn may_create_auth_roles_cross_paths_table(db_pool: &DbPool) -> Result<String, StatusMessage>;

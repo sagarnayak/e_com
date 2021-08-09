@@ -32,7 +32,11 @@ impl<'r> FromRequest<'r> for AuthenticationGuard {
         }
 
         match req.headers().get_one("Authorization") {
-            None => Outcome::Failure((Status::Unauthorized, StatusMessage { code: 401, message: AUTHENTICATION_FAILURE.to_string() })),
+            None => Outcome::Failure((Status::Unauthorized, StatusMessage {
+                code: 401,
+                status: Status::Unauthorized,
+                message: AUTHENTICATION_FAILURE.to_string(),
+            })),
             Some(key) => {
                 let validated_result = is_valid(key);
                 if validated_result.0 {
@@ -48,7 +52,11 @@ impl<'r> FromRequest<'r> for AuthenticationGuard {
                             Outcome::Failure(
                                 (
                                     Status::Unauthorized,
-                                    StatusMessage { code: 401, message: status_message.message }
+                                    StatusMessage {
+                                        code: 401,
+                                        status: Status::Unauthorized,
+                                        message: status_message.message,
+                                    }
                                 )
                             )
                         }
@@ -60,14 +68,22 @@ impl<'r> FromRequest<'r> for AuthenticationGuard {
                                 Outcome::Failure(
                                     (
                                         Status::Unauthorized,
-                                        StatusMessage { code: 401, message: EXPIRED_AUTH_TOKEN.to_string() }
+                                        StatusMessage {
+                                            code: 401,
+                                            status: Status::Unauthorized,
+                                            message: EXPIRED_AUTH_TOKEN.to_string(),
+                                        }
                                     )
                                 )
                             } else {
                                 Outcome::Failure(
                                     (
                                         Status::Unauthorized,
-                                        StatusMessage { code: 401, message: AUTHENTICATION_FAILURE.to_string() }
+                                        StatusMessage {
+                                            code: 401,
+                                            status: Status::Unauthorized,
+                                            message: AUTHENTICATION_FAILURE.to_string(),
+                                        }
                                     )
                                 )
                             }
@@ -76,7 +92,11 @@ impl<'r> FromRequest<'r> for AuthenticationGuard {
                             Outcome::Failure(
                                 (
                                     Status::Unauthorized,
-                                    StatusMessage { code: 401, message: AUTHENTICATION_FAILURE.to_string() }
+                                    StatusMessage {
+                                        code: 401,
+                                        status: Status::Unauthorized,
+                                        message: AUTHENTICATION_FAILURE.to_string(),
+                                    }
                                 )
                             )
                         }

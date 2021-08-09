@@ -51,6 +51,12 @@ pub async fn resolve_client(db_pool: &DbPool) -> Client {
 
 pub async fn may_execute_migrations() {
     let db_pool = database_master::get_db_pools();
+    match MigrationStruct::may_create_table_rows_count_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table rows count completed.");
+        }
+        Err(error) => println!("table rows count creation error error is {:?}", error),
+    }
     match MigrationStruct::may_create_paths_table(&db_pool).await {
         Ok(_) => {
             println!("may create table paths completed.");

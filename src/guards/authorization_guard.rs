@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::strings::{AUTHENTICATION_FAILURE, AUTHORIZATION_FAILURE, EXPIRED_AUTH_TOKEN};
 use crate::jwt_master::jwt_master::{extract_jwt, validate_jwt};
+use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 use crate::model::claims::Claims;
 use crate::model::status_message::StatusMessage;
-use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AuthorizationGuard {
@@ -35,6 +35,11 @@ impl<'r> FromRequest<'r> for AuthorizationGuard {
         fn is_allowed(claims: &Claims, req: &Request) -> bool {
             let method: &Method = &req.method();
             let path = &req.uri().to_string();
+            let path = if path.contains("?") {
+                path.split("?").collect::<Vec<&str>>()[0]
+            } else {
+                path
+            };
 
             for auth in claims.authorizations_minified.clone() {
                 let auth_expanded = AuthRolesCrossPaths::full_version(auth);
@@ -69,7 +74,11 @@ impl<'r> FromRequest<'r> for AuthorizationGuard {
         }
 
         match req.headers().get_one("Authorization") {
-            None => Outcome::Failure((Status::Unauthorized, StatusMessage { code: 401, message: AUTHENTICATION_FAILURE.to_string() })),
+            None => Outcome::Failure((Status::Unauthorized, StatusMessage {
+                code: 401,
+                status: Status::Unauthorized,
+                message: AUTHENTICATION_FAILURE.to_string(),
+            })),
             Some(key) => {
                 let validated_result = is_valid(key);
                 if validated_result.0 {
@@ -88,7 +97,11 @@ impl<'r> FromRequest<'r> for AuthorizationGuard {
                                 Outcome::Failure(
                                     (
                                         Status::Forbidden,
-                                        StatusMessage { code: 403, message: AUTHORIZATION_FAILURE.to_string() }
+                                        StatusMessage {
+                                            code: 403,
+                                            status: Status::Forbidden,
+                                            message: AUTHORIZATION_FAILURE.to_string(),
+                                        }
                                     )
                                 )
                             }
@@ -97,7 +110,11 @@ impl<'r> FromRequest<'r> for AuthorizationGuard {
                             Outcome::Failure(
                                 (
                                     Status::Unauthorized,
-                                    StatusMessage { code: 401, message: status_message.message }
+                                    StatusMessage {
+                                        code: 401,
+                                        status: Status::Unauthorized,
+                                        message: status_message.message,
+                                    }
                                 )
                             )
                         }
@@ -109,14 +126,22 @@ impl<'r> FromRequest<'r> for AuthorizationGuard {
                                 Outcome::Failure(
                                     (
                                         Status::Unauthorized,
-                                        StatusMessage { code: 401, message: EXPIRED_AUTH_TOKEN.to_string() }
+                                        StatusMessage {
+                                            code: 401,
+                                            status: Status::Unauthorized,
+                                            message: EXPIRED_AUTH_TOKEN.to_string(),
+                                        }
                                     )
                                 )
                             } else {
                                 Outcome::Failure(
                                     (
                                         Status::Unauthorized,
-                                        StatusMessage { code: 401, message: AUTHENTICATION_FAILURE.to_string() }
+                                        StatusMessage {
+                                            code: 401,
+                                            status: Status::Unauthorized,
+                                            message: AUTHENTICATION_FAILURE.to_string(),
+                                        }
                                     )
                                 )
                             }
@@ -125,7 +150,11 @@ impl<'r> FromRequest<'r> for AuthorizationGuard {
                             Outcome::Failure(
                                 (
                                     Status::Unauthorized,
-                                    StatusMessage { code: 401, message: AUTHENTICATION_FAILURE.to_string() }
+                                    StatusMessage {
+                                        code: 401,
+                                        status: Status::Unauthorized,
+                                        message: AUTHENTICATION_FAILURE.to_string(),
+                                    }
                                 )
                             )
                         }

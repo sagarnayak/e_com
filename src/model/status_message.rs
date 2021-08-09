@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct StatusMessage {
     pub code: u16,
+    #[serde(skip_serializing, skip_deserializing)]
+    pub status: Status,
     pub message: String,
 }
 
@@ -17,6 +19,7 @@ impl StatusMessage {
     pub fn custom(message: String, status: Status) -> StatusMessage {
         StatusMessage {
             code: status.code,
+            status,
             message,
         }
     }

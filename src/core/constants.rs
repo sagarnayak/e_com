@@ -1,5 +1,7 @@
 //GLOBAL
 pub const B_CRYPT_COST: u32 = 12;
+pub const DEFAULT_PAGE_SIZE: u32 = 5;
+pub const MAX_PAGE_SIZE: u32 = 100;
 
 //dev
 pub const HOST_DEV: &str = "127.0.0.1";
