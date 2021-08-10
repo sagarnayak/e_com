@@ -245,11 +245,163 @@ pub async fn find_roles_created_by_me(
         }
     };
 
-    return match Role::find_roles_created_by_me(
+    return match Role::find_roles_created_by_role(
         &user_own_role,
         &page_number,
         &page_size,
         &db_pool,
+    ).await {
+        Ok(positive) => {
+            status::Custom(
+                Status::Ok,
+                Ok(
+                    Json(
+                        positive
+                    )
+                ),
+            )
+        }
+        Err(error) => {
+            StatusMessage::bad_request_400_with_status_code_in_result(
+                error.message
+            )
+        }
+    };
+}
+
+#[get("/roles/<role_creator_role_id>?<page>&<size>")]
+pub async fn find_roles_created_by_specific_user(
+    authentication_guard: Result<AuthenticationGuard, StatusMessage>,
+    authorization_guard: Result<AuthorizationGuard, StatusMessage>,
+    db_pool: &State<DbPool>,
+    role_creator_role_id: Option<String>,
+    page: Option<u32>,
+    size: Option<u32>,
+)
+    -> status::Custom<Result<Json<PageResponse<Role>>, Json<StatusMessage>>> {
+    let authentication_guard = match authentication_guard {
+        Ok(positive) => {
+            positive
+        }
+        Err(error) => {
+            return StatusMessage::unauthorized_401_with_status_code_in_result(
+                error.message
+            );
+        }
+    };
+
+    match authorization_guard {
+        Ok(_) => {}
+        Err(error) => {
+            return StatusMessage::forbidden_403_with_status_code_in_result(
+                error.message
+            );
+        }
+    }
+
+    let user = match User::find_user_with_id(
+        authentication_guard.claims.owner,
+        &db_pool,
+    ).await {
+        Ok(positive) => {
+            positive
+        }
+        Err(error) => {
+            return StatusMessage::bad_request_400_with_status_code_in_result(
+                error.message
+            );
+        }
+    };
+
+    let user_own_role = match Role::find_role_for(
+        &user,
+        &db_pool,
+    ).await {
+        Ok(positive) => {
+            positive
+        }
+        Err(error) => {
+            return StatusMessage::bad_request_400_with_status_code_in_result(
+                error.message
+            );
+        }
+    };
+
+    let role_creator_role_id = match role_creator_role_id {
+        Some(positive) => {
+            positive
+        }
+        None => {
+            return StatusMessage::bad_request_400_with_status_code_in_result(
+                "Please provide role id".to_owned()
+            );
+        }
+    };
+
+    let role_data_of_role_creator = match Role::find_role_for_role_id(
+        &role_creator_role_id,
+        &db_pool,
+    ).await {
+        Ok(positive) => {
+            positive
+        }
+        Err(_) => {
+            return StatusMessage::bad_request_400_with_status_code_in_result(
+                "Role not found".to_owned()
+            );
+        }
+    };
+
+    let if_allowed_to_view_roles = match Role::if_role_is_direct_or_indirect_parent(
+        &user_own_role,
+        &role_data_of_role_creator,
+        &db_pool,
+    ).await {
+        Ok(positive) => {
+            positive
+        }
+        Err(error) => {
+            return StatusMessage::forbidden_403_with_status_code_in_result(
+                error.message
+            );
+        }
+    };
+
+    if !if_allowed_to_view_roles {
+        return StatusMessage::forbidden_403_with_status_code_in_result(
+            "You are not allowed to view roles created by this role".to_owned()
+        );
+    }
+
+    let conf_data = ConfigData::new();
+
+    let page_number = match page {
+        Some(positive) => {
+            positive
+        }
+        None => {
+            1
+        }
+    };
+
+    let page_size = match size {
+        Some(positive) => {
+            if positive <= conf_data.paging_conf.max_page_size {
+                positive
+            } else {
+                conf_data.paging_conf.max_page_size
+            }
+        }
+        None => {
+            conf_data.paging_conf.default_page_size
+        }
+    };
+
+    return match Role::find_roles_created_by_role(
+        &role_data_of_role_creator,
+        &page_number,
+        &page_size,
+        &db_pool
     ).await {
         Ok(positive) => {
             status::Custom(

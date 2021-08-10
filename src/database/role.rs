@@ -1,3 +1,4 @@
+use async_recursion::async_recursion;
 use chrono::{DateTime, Utc};
 use postgres::Row;
 use rocket::State;
@@ -106,14 +107,75 @@ impl Role {
 
         Ok(results_to_send)
     }
+
+    #[async_recursion]
+    pub async fn if_role_is_direct_or_indirect_parent(
+        anticipated_parent_role: &Role,
+        anticipated_child_role: &Role,
+        db_pool: &State<DbPool>,
+    )
+        -> Result<bool, StatusMessage> {
+        let anticipated_child_role_derived_from = match anticipated_child_role.clone().derived_from {
+            Some(positive) => {
+                positive
+            }
+            None => {
+                return StatusMessage::bad_request_400_in_result(
+                    "Child does not have parent role id".to_owned()
+                );
+            }
+        };
+
+        if anticipated_child_role_derived_from == anticipated_parent_role.id {
+            return Ok(true);
+        } else {
+            let immediate_parent_role_id = match anticipated_child_role.clone().derived_from {
+                Some(positive) => {
+                    positive
+                }
+                None => {
+                    return StatusMessage::bad_request_400_in_result(
+                        "failed to get derived role id".to_owned()
+                    );
+                }
+            };
+
+            let immediate_parent_role = match Role::find_role_for_role_id(
+                &immediate_parent_role_id,
+                &db_pool,
+            ).await {
+                Ok(positive) => {
+                    positive
+                }
+                Err(error) => {
+                    return StatusMessage::bad_request_400_in_result(
+                        error.message
+                    );
+                }
+            };
+
+            Role::if_role_is_direct_or_indirect_parent(
+                &immediate_parent_role,
+                &anticipated_child_role,
+                &db_pool,
+            ).await
+        }
+    }
 }
 
 #[async_trait]
 impl RoleContracts for Role {
     async fn find_role_for(user: &User, db_pool: &State<DbPool>) -> Result<Role, StatusMessage> {
+        Role::find_role_for_role_id(
+            &user.role,
+            &db_pool,
+        ).await
+    }
+
+    async fn find_role_for_role_id(role_id: &str, db_pool: &State<DbPool>) -> Result<Role, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
-        let statement_to_send = &format!("SELECT * FROM roles WHERE id = '{}'", user.role);
+        let statement_to_send = &format!("SELECT * FROM roles WHERE id = '{}'", &role_id);
 
         let statement = match client
             .prepare_cached(statement_to_send)
@@ -242,7 +304,7 @@ impl RoleContracts for Role {
         }
     }
 
-    async fn find_roles_created_by_me(
+    async fn find_roles_created_by_role(
         role: &Role,
         page_number: &u32,
         page_size: &u32,

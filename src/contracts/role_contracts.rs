@@ -11,10 +11,11 @@ use crate::model::user::User;
 #[async_trait]
 pub trait RoleContracts {
     async fn find_role_for(user: &User, db_pool: &State<DbPool>) -> Result<Role, StatusMessage>;
+    async fn find_role_for_role_id(role_id: &str, db_pool: &State<DbPool>) -> Result<Role, StatusMessage>;
     async fn find_role_for_admin(db_pool: &DbPool) -> Result<Role, StatusMessage>;
     async fn add_role(user_role: &Role, role: &RoleRequest, db_pool: &DbPool)
         -> Result<u64, StatusMessage>;
-    async fn find_roles_created_by_me(
+    async fn find_roles_created_by_role(
         role: &Role,
         page_number: &u32,
         page_size: &u32,

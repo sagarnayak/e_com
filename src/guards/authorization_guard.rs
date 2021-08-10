@@ -40,10 +40,16 @@ impl<'r> FromRequest<'r> for AuthorizationGuard {
             } else {
                 path
             };
+            let path = if path.contains("/") {
+                let striped_path = path.split("/").collect::<Vec<&str>>()[1];
+                format!("/{}", &striped_path)
+            } else {
+                path.to_owned()
+            };
 
             for auth in claims.authorizations_minified.clone() {
                 let auth_expanded = AuthRolesCrossPaths::full_version(auth);
-                if &auth_expanded.path == path {
+                if &auth_expanded.path == &path {
                     match method {
                         Method::Get => {
                             if auth_expanded.get_allowed {

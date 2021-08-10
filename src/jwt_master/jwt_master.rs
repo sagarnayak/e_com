@@ -79,7 +79,7 @@ pub fn extract_jwt(key_to_decode: &str) -> Result<Claims, StatusMessage> {
         &Validation::new(Algorithm::HS512),
     ) {
         Ok(c) => Ok(c.claims),
-        Err(error) => {
+        Err(_) => {
             StatusMessage::bad_request_400_in_result("Failed to extract data from JWT".to_string())
         }
     };

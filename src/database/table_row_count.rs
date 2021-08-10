@@ -253,7 +253,7 @@ impl TableRowsCountContracts for TableRowsCount {
     async fn clear_data_for_table(table_name: &str, db_pool: &State<DbPool>) -> Result<bool, StatusMessage> {
         let client = resolve_client(db_pool).await;
         let statement_to_send = format!(
-            "DELETE * from table_rows_counts where table_name = '{}'",
+            "DELETE from table_rows_counts where table_name = '{}'",
             &table_name
         );
 
