@@ -13,4 +13,5 @@ pub trait MigrationContracts {
     async fn may_create_users_table(db_pool: &DbPool) -> Result<String, StatusMessage>;
     async fn may_create_expired_blocked_tokens_table(db_pool: &DbPool) -> Result<String, StatusMessage>;
     async fn may_create_authorization_exceptions_table(db_pool: &DbPool) -> Result<String, StatusMessage>;
+    async fn may_create_blocked_for_platform_authorization_table(db_pool: &DbPool) -> Result<String, StatusMessage>;
 }

@@ -41,3 +41,6 @@ pub const JWT_SECRET_PROD: &str = "GA=a48]zpEV[#F|W^oiw5Wy{}7$H7.?Q[RV!8Y?=-f v[
 pub const ADMIN_NAME_PROD: &str = "he_who_remains";
 pub const ADMIN_EMAIL_PROD: &str = "he_who_remains@apu.com";
 pub const ADMIN_PASSWORD_PROD: &str = "admin";
+
+//custom status code
+pub const NEED_PLATFORM_AUTH: u16 = 4011;

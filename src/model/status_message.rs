@@ -103,6 +103,19 @@ impl StatusMessage {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // derived methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    //for dynamic types
+    pub fn dynamic_error_with_status_code_in_result<T>(status_message: StatusMessage)
+                                                         -> status::Custom<Result<Json<T>, Json<StatusMessage>>> {
+        status::Custom(
+            status_message.status,
+            Err(
+                Json(
+                    status_message
+                )
+            ),
+        )
+    }
+
     //for 200
     pub fn ok_200_with_status_code_in_result<T>(message: String)
                                                 -> status::Custom<Result<Json<StatusMessage>, T>> {
@@ -111,6 +124,17 @@ impl StatusMessage {
             Ok(
                 Json(
                     StatusMessage::custom(message, Status::Ok)
+                )
+            ),
+        )
+    }
+    pub fn ok_200_with_status_code_in_result_generic<T>(data: T)
+                                                        -> status::Custom<Result<Json<T>, Json<StatusMessage>>> {
+        status::Custom(
+            Status::Ok,
+            Ok(
+                Json(
+                    data
                 )
             ),
         )

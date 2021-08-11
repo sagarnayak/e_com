@@ -9,8 +9,7 @@ use crate::contracts::table_rows_count_contracts::TableRowsCountContracts;
 use crate::contracts::user_contracts::UserContracts;
 use crate::core::strings::{BAD_REQUEST, FORBIDDEN};
 use crate::database::db_pool::DbPool;
-use crate::guards::authentication_guard::AuthenticationGuard;
-use crate::guards::authorization_guard::AuthorizationGuard;
+use crate::guards::authentication_authorization_guard::AuthenticationAuthorizationGuard;
 use crate::model::page_response::PageResponse;
 use crate::model::role::Role;
 use crate::model::role_request::RoleRequest;
@@ -20,32 +19,18 @@ use crate::model::user::User;
 
 #[get("/role")]
 pub async fn get_my_role(
-    authentication_guard: Result<AuthenticationGuard, StatusMessage>,
-    authorization_guard: Result<AuthorizationGuard, StatusMessage>,
+    authentication_authorization_guard: Result<AuthenticationAuthorizationGuard, StatusMessage>,
     db_pool: &State<DbPool>,
 )
     -> status::Custom<Result<Json<Role>, Json<StatusMessage>>> {
-    let authentication_guard = match authentication_guard {
-        Ok(positive) => {
-            positive
-        }
+    let authentication_authorization_guard = match authentication_authorization_guard {
+        Ok(positive) => { positive }
         Err(error) => {
-            return StatusMessage::unauthorized_401_with_status_code_in_result(
-                error.message
-            );
+            return StatusMessage::dynamic_error_with_status_code_in_result(error);
         }
     };
 
-    match authorization_guard {
-        Ok(_) => {}
-        Err(error) => {
-            return StatusMessage::forbidden_403_with_status_code_in_result(
-                error.message
-            );
-        }
-    }
-
-    let user = match User::find_user_with_id(authentication_guard.claims.owner.clone(), db_pool).await {
+    let user = match User::find_user_with_id(authentication_authorization_guard.claims.owner.clone(), db_pool).await {
         Ok(positive) => {
             positive
         }
@@ -80,33 +65,19 @@ pub async fn get_my_role(
 #[post("/role", data = "<role_request>")]
 pub async fn create_role(
     role_request: Option<Json<RoleRequest>>,
-    authentication_guard: Result<AuthenticationGuard, StatusMessage>,
-    authorization_guard: Result<AuthorizationGuard, StatusMessage>,
+    authentication_authorization_guard: Result<AuthenticationAuthorizationGuard, StatusMessage>,
     db_pool: &State<DbPool>,
 )
     -> status::Custom<Result<Json<StatusMessage>, Json<StatusMessage>>> {
-    let authentication_guard = match authentication_guard {
-        Ok(positive) => {
-            positive
-        }
+    let authentication_authorization_guard = match authentication_authorization_guard {
+        Ok(positive) => { positive }
         Err(error) => {
-            return StatusMessage::unauthorized_401_with_status_code_in_result(
-                error.message
-            );
+            return StatusMessage::dynamic_error_with_status_code_in_result(error);
         }
     };
 
-    match authorization_guard {
-        Ok(_) => {}
-        Err(error) => {
-            return StatusMessage::forbidden_403_with_status_code_in_result(
-                error.message
-            );
-        }
-    }
-
     let user = match User::find_user_with_id(
-        authentication_guard.claims.owner,
+        authentication_authorization_guard.claims.owner,
         &db_pool,
     ).await {
         Ok(positive) => {
@@ -166,35 +137,21 @@ pub async fn create_role(
 
 #[get("/roles?<page>&<size>")]
 pub async fn find_roles_created_by_me(
-    authentication_guard: Result<AuthenticationGuard, StatusMessage>,
-    authorization_guard: Result<AuthorizationGuard, StatusMessage>,
+    authentication_authorization_guard: Result<AuthenticationAuthorizationGuard, StatusMessage>,
     db_pool: &State<DbPool>,
     page: Option<u32>,
     size: Option<u32>,
 )
     -> status::Custom<Result<Json<PageResponse<Role>>, Json<StatusMessage>>> {
-    let authentication_guard = match authentication_guard {
-        Ok(positive) => {
-            positive
-        }
+    let authentication_authorization_guard = match authentication_authorization_guard {
+        Ok(positive) => { positive }
         Err(error) => {
-            return StatusMessage::unauthorized_401_with_status_code_in_result(
-                error.message
-            );
+            return StatusMessage::dynamic_error_with_status_code_in_result(error);
         }
     };
 
-    match authorization_guard {
-        Ok(_) => {}
-        Err(error) => {
-            return StatusMessage::forbidden_403_with_status_code_in_result(
-                error.message
-            );
-        }
-    }
-
     let user = match User::find_user_with_id(
-        authentication_guard.claims.owner,
+        authentication_authorization_guard.claims.owner,
         &db_pool,
     ).await {
         Ok(positive) => {
@@ -271,36 +228,22 @@ pub async fn find_roles_created_by_me(
 
 #[get("/roles/<role_creator_role_id>?<page>&<size>")]
 pub async fn find_roles_created_by_specific_user(
-    authentication_guard: Result<AuthenticationGuard, StatusMessage>,
-    authorization_guard: Result<AuthorizationGuard, StatusMessage>,
+    authentication_authorization_guard: Result<AuthenticationAuthorizationGuard, StatusMessage>,
     db_pool: &State<DbPool>,
     role_creator_role_id: Option<String>,
     page: Option<u32>,
     size: Option<u32>,
 )
     -> status::Custom<Result<Json<PageResponse<Role>>, Json<StatusMessage>>> {
-    let authentication_guard = match authentication_guard {
-        Ok(positive) => {
-            positive
-        }
+    let authentication_authorization_guard = match authentication_authorization_guard {
+        Ok(positive) => { positive }
         Err(error) => {
-            return StatusMessage::unauthorized_401_with_status_code_in_result(
-                error.message
-            );
+            return StatusMessage::dynamic_error_with_status_code_in_result(error);
         }
     };
 
-    match authorization_guard {
-        Ok(_) => {}
-        Err(error) => {
-            return StatusMessage::forbidden_403_with_status_code_in_result(
-                error.message
-            );
-        }
-    }
-
     let user = match User::find_user_with_id(
-        authentication_guard.claims.owner,
+        authentication_authorization_guard.claims.owner,
         &db_pool,
     ).await {
         Ok(positive) => {
@@ -401,7 +344,7 @@ pub async fn find_roles_created_by_specific_user(
         &role_data_of_role_creator,
         &page_number,
         &page_size,
-        &db_pool
+        &db_pool,
     ).await {
         Ok(positive) => {
             status::Custom(

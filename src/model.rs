@@ -13,3 +13,4 @@ pub mod authorization_exception;
 pub mod auth_roles_cross_paths_request;
 pub mod page_response;
 pub mod table_rows_count;
+pub mod blocked_for_platform_authorization;

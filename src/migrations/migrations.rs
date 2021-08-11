@@ -328,4 +328,39 @@ impl MigrationContracts for MigrationStruct {
 
         Ok(format!("done :: {}", results))
     }
+
+    async fn may_create_blocked_for_platform_authorization_table(db_pool: &DbPool) -> Result<String, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement = match client
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS blocked_for_platform_authorization(\
+                    id uuid default gen_random_uuid(),\
+                    jwt_hash varchar(200) NOT NULL,\
+                    done bool NOT NULL default false,\
+                    created timestamptz default CURRENT_TIMESTAMP NOT NULL,\
+                    modified timestamptz,\
+                    PRIMARY KEY (id) )"
+                )
+            )
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            ),
+        };
+
+        let results = match client.execute(
+            &statement,
+            &[],
+        ).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            )
+        };
+
+        Ok(format!("done :: {}", results))
+    }
 }

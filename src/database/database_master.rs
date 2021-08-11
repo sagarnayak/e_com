@@ -104,4 +104,10 @@ pub async fn may_execute_migrations() {
         }
         Err(error) => println!("authorization_exceptions table creation error error is {:?}", error),
     }
+    match MigrationStruct::may_create_blocked_for_platform_authorization_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table blocked_for_platform_authorization completed.");
+        }
+        Err(error) => println!("blocked_for_platform_authorization table creation error error is {:?}", error),
+    }
 }
