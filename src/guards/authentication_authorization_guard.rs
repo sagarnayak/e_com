@@ -100,38 +100,52 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
             return false;
         }
 
-        async fn should_perform_platform_authentication<'r>(user_id: &String, jwt: &String, request: &'r Request<'_>) -> bool {
+        async fn should_perform_platform_authentication<'r>(user_id: &String, jwt: &String, request: &'r Request<'_>) -> (bool, Option<String>) {
             let should_block = rand::thread_rng().gen_bool(0.5);
 
             if !should_block {
-                return false;
+                return (false, None);
             }
 
             let db_pool = match request.rocket().state::<DbPool>() {
                 Some(positive) => { positive }
                 None => {
                     println!("blocked due to db pool not found");
-                    return false;
+                    return (false, None);
                 }
             };
 
-            match BlockedForPlatformAuthorization::add_jwt(&user_id, &jwt, &db_pool).await {
+            let rand_string: String = rand::thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(30)
+                .map(char::from)
+                .collect();
+
+            return match BlockedForPlatformAuthorization::add_jwt(
+                &user_id,
+                &jwt,
+                &rand_string,
+                &db_pool,
+            ).await {
                 Ok(_) => {
                     println!("blocked after inserting the data to the table");
-                    return true;
+                    (true, Some(rand_string))
                 }
                 Err(_) => {
                     println!("not blocked due to inserting failure");
-                    return false;
+                    (false, None)
                 }
-            }
+            };
         }
 
-        async fn if_present_in_blocked_for_platform_authorization_list<'r>(jwt: &String, request: &'r Request<'_>) -> bool {
+        async fn if_present_in_blocked_for_platform_authorization_list<'r>(
+            jwt: &String,
+            request: &'r Request<'_>,
+        ) -> (bool, Option<BlockedForPlatformAuthorization>) {
             let db_pool = match request.rocket().state::<DbPool>() {
                 Some(positive) => { positive }
                 None => {
-                    return false;
+                    return (false, None);
                 }
             };
 
@@ -139,15 +153,28 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                 &jwt,
                 &db_pool,
             ).await {
-                Ok(_) => {
+                Ok(positive) => {
                     println!("found jwt in blocked for platform check");
-                    true
+                    (true, Some(positive))
                 }
                 Err(_) => {
                     println!("not found jwt in blocked for platform check");
-                    false
+                    (false, None)
                 }
             };
+        }
+
+        async fn verify_platform_authorization<'r>(
+            request: &'r Request<'_>,
+        )->bool{
+            match request.headers().get_one("X-Platform-Authorization"){
+                None=>{
+                    return false;
+                },
+                Some(positive)=>{
+
+                }
+            }
         }
 
         match req.headers().get_one("Authorization") {
@@ -167,10 +194,13 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                 req,
                             ) {
                                 let striped_jwt = &strip_bearer_string(key);
-                                if if_present_in_blocked_for_platform_authorization_list(
-                                    &striped_jwt,
-                                    &req,
-                                ).await {
+                                let if_present_in_blocked_for_platform_authorization_list_result =
+                                    if_present_in_blocked_for_platform_authorization_list(
+                                        &striped_jwt,
+                                        &req,
+                                    ).await;
+                                if if_present_in_blocked_for_platform_authorization_list_result.0 {
+                                    verify_platform_authorization().await;
                                     return Outcome::Failure(
                                         (
                                             Status::Unauthorized,
@@ -183,17 +213,13 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                         )
                                     );
                                 }
-                                if should_perform_platform_authentication(
-                                    &claims.owner,
-                                    &striped_jwt,
-                                    &req,
-                                ).await {
-                                    let rand_string: String = rand::thread_rng()
-                                        .sample_iter(&Alphanumeric)
-                                        .take(30)
-                                        .map(char::from)
-                                        .collect();
-
+                                let should_perform_platform_authentication_result =
+                                    should_perform_platform_authentication(
+                                        &claims.owner,
+                                        &striped_jwt,
+                                        &req,
+                                    ).await;
+                                if should_perform_platform_authentication_result.0 {
                                     return Outcome::Failure(
                                         (
                                             Status::Unauthorized,
@@ -201,7 +227,7 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                                 code: NEED_PLATFORM_AUTH,
                                                 status: Status::Unauthorized,
                                                 message: "Please perform a platform authorization".to_owned(),
-                                                sys_message: Some(rand_string),
+                                                sys_message: Some(should_perform_platform_authentication_result.1.unwrap()),
                                             }
                                         )
                                     );

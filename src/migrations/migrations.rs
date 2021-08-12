@@ -339,6 +339,7 @@ impl MigrationContracts for MigrationStruct {
                     id uuid default gen_random_uuid(),\
                     user_id uuid NOT NULL,\
                     jwt_hash varchar(200) NOT NULL,\
+                    nonce varchar(200) NOT NULL,\
                     done bool NOT NULL default false,\
                     created timestamptz default CURRENT_TIMESTAMP NOT NULL,\
                     modified timestamptz,\

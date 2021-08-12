@@ -50,7 +50,19 @@ impl BlockedForPlatformAuthorization {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let done: bool = match row.try_get(3) {
+            let nonce: String = match row.try_get(3) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => {
+                        return StatusMessage::bad_request_400_in_result("failed to get nonce ".to_string());
+                    }
+                },
+                Err(error) => {
+                    let error_message = error.to_string();
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
+            };
+            let done: bool = match row.try_get(4) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -62,7 +74,7 @@ impl BlockedForPlatformAuthorization {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let created: DateTime<Utc> = match row.try_get(4) {
+            let created: DateTime<Utc> = match row.try_get(5) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -74,7 +86,7 @@ impl BlockedForPlatformAuthorization {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let modified: Option<DateTime<Utc>> = match row.try_get(5) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(6) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -91,6 +103,7 @@ impl BlockedForPlatformAuthorization {
                 id: id.to_hyphenated().to_string(),
                 user_id: user_id.to_hyphenated().to_string(),
                 jwt_hash,
+                nonce,
                 done,
                 created,
                 modified,
@@ -105,17 +118,18 @@ impl BlockedForPlatformAuthorization {
 
 #[async_trait]
 impl BlockedForPlatformAuthorizationContracts for BlockedForPlatformAuthorization {
-    async fn add_jwt(user_id: &String, jwt: &String, db_pool: &DbPool) -> Result<bool, StatusMessage> {
+    async fn add_jwt(user_id: &String, jwt: &String, nonce: &String, db_pool: &DbPool) -> Result<bool, StatusMessage> {
         let jwt = jwt.split(".").collect::<Vec<&str>>()[2];
 
         let client = resolve_client(db_pool).await;
 
         let statement_to_send = &format!(
             "INSERT INTO blocked_for_platform_authorization \
-            (user_id,jwt_hash) \
-            VALUES ('{}','{}')",
+            (user_id,jwt_hash,nonce) \
+            VALUES ('{}','{}','{}')",
             &user_id,
-            &jwt
+            &jwt,
+            &nonce
         );
 
         let statement = match client
@@ -178,7 +192,7 @@ impl BlockedForPlatformAuthorizationContracts for BlockedForPlatformAuthorizatio
                     code: Status::NoContent.code,
                     status: Status::NoContent,
                     message: "No data".to_owned(),
-                    sys_message:None,
+                    sys_message: None,
                 }
             )
         }
@@ -225,7 +239,7 @@ impl BlockedForPlatformAuthorizationContracts for BlockedForPlatformAuthorizatio
                     code: Status::NoContent.code,
                     status: Status::NoContent,
                     message: "No data".to_owned(),
-                    sys_message:None,
+                    sys_message: None,
                 }
             )
         }
