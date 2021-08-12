@@ -2,6 +2,7 @@ use rocket::Route;
 
 use crate::controllers::auth_roles_cross_paths_route::get_available_paths;
 use crate::controllers::authentication_route::authenticate;
+use crate::controllers::index::index;
 use crate::controllers::profile::me;
 use crate::controllers::roles_route::create_role;
 use crate::controllers::roles_route::find_roles_created_by_me;
@@ -11,6 +12,19 @@ use crate::model::path::Path;
 
 pub fn get_paths() -> Vec<Path> {
     let mut paths: Vec<Path> = vec![];
+
+    paths.push(
+        Path {
+            id: None,
+            path: "/".to_string(),
+            get_available: true,
+            post_available: false,
+            put_available: false,
+            delete_available: false,
+            created: None,
+            modified: None,
+        }
+    );
 
     paths.push(
         Path {
@@ -89,5 +103,6 @@ pub fn get_routes() -> Vec<Route> {
         find_roles_created_by_me,
         find_roles_created_by_specific_user,
         me,
+        index,
     ]
 }
