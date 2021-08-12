@@ -1,8 +1,19 @@
+use std::net::SocketAddr;
+
+use hyper::{body::HttpBody as _, Client, Uri};
+use hyper::Request as hyper_req;
+use hyper::client::HttpConnector;
+use hyper::Server;
+use hyper_tls::HttpsConnector;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use rocket::http::{Method, Status};
 use rocket::request::{FromRequest, Outcome, Request};
+use rocket::response::Body;
+use rocket::Rocket;
 use serde::{Deserialize, Serialize};
+
+use http::{Request, Response};
 
 use crate::contracts::blocked_for_platform_authorization_contracts::BlockedForPlatformAuthorizationContracts;
 use crate::core::constants::NEED_PLATFORM_AUTH;
@@ -13,6 +24,7 @@ use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 use crate::model::blocked_for_platform_authorization::BlockedForPlatformAuthorization;
 use crate::model::claims::Claims;
 use crate::model::status_message::StatusMessage;
+use crate::model::user::User;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AuthenticationAuthorizationGuard {
@@ -166,15 +178,51 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
 
         async fn verify_platform_authorization<'r>(
             request: &'r Request<'_>,
-        )->bool{
-            match request.headers().get_one("X-Platform-Authorization"){
-                None=>{
+        ) -> bool {
+            let platform_auth_key = match request.headers().get_one("X-Platform-Authorization") {
+                None => {
                     return false;
-                },
-                Some(positive)=>{
-
                 }
-            }
+                Some(positive) => {
+                    positive
+                }
+            };
+
+            let https = HttpsConnector::new();
+            let client =  Client::new();
+
+                // Client::builder()
+                // .build::<_, hyper::Body>(https);
+
+            let mut request = hyper_req::builder()
+                .method("GET")
+                .uri("https://www.rust-lang.org/")
+                .header("X-Custom-Foo", "Bar")
+                .body(())
+                .unwrap();
+
+            let web_res = client.request(request).await?;
+            let res = match client.get(Uri::from_static("https://reqres.in/api/users/2")).await {
+                Ok(positive) => { positive }
+                Err(error) => {
+                    println!("error :: {}", error.to_string());
+                    return false;
+                }
+            };
+
+            println!("status: {}", res.status());
+
+            let buf = match hyper::body::to_bytes(res).await {
+                Ok(positive) => { positive }
+                Err(error) => {
+                    println!("error ::: {}", error.to_string());
+                    return false;
+                }
+            };
+
+            println!("body: {:?}", buf);
+
+            true
         }
 
         match req.headers().get_one("Authorization") {
@@ -193,6 +241,9 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                 &claims,
                                 req,
                             ) {
+                                let verify_platform_authorization_result = verify_platform_authorization(
+                                    &req
+                                ).await;
                                 let striped_jwt = &strip_bearer_string(key);
                                 let if_present_in_blocked_for_platform_authorization_list_result =
                                     if_present_in_blocked_for_platform_authorization_list(
@@ -200,7 +251,9 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                         &req,
                                     ).await;
                                 if if_present_in_blocked_for_platform_authorization_list_result.0 {
-                                    verify_platform_authorization().await;
+                                    let verify_platform_authorization_result = verify_platform_authorization(
+                                        &req
+                                    ).await;
                                     return Outcome::Failure(
                                         (
                                             Status::Unauthorized,
