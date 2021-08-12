@@ -10,17 +10,19 @@ pub struct StatusMessage {
     #[serde(skip_serializing, skip_deserializing)]
     pub status: Status,
     pub message: String,
+    pub sys_message: Option<String>,
 }
 
 impl StatusMessage {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // customizable
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    pub fn custom(message: String, status: Status) -> StatusMessage {
+    pub fn custom(message: String, status: Status, code: Option<u16>, sys_message: Option<String>) -> StatusMessage {
         StatusMessage {
-            code: status.code,
+            code: if code.is_some() { code.unwrap() } else { status.code },
             status,
             message,
+            sys_message,
         }
     }
     pub fn custom_with_status_code(message: String, status: Status)
@@ -28,17 +30,27 @@ impl StatusMessage {
         status::Custom(
             status,
             Json(
-                StatusMessage::custom(message, status)
+                StatusMessage::custom(message, status, None, None)
             ),
         )
     }
-    pub fn custom_with_status_code_in_result<T>(message: String, status: Status)
-                                                -> status::Custom<Result<T, Json<StatusMessage>>> {
+    pub fn custom_with_status_code_in_result<T>(
+        message: String,
+        status: Status,
+        code: Option<u16>,
+        sys_message: Option<String>,
+    )
+        -> status::Custom<Result<T, Json<StatusMessage>>> {
         status::Custom(
             status,
             Err(
                 Json(
-                    StatusMessage::custom(message, status)
+                    StatusMessage::custom(
+                        message,
+                        status,
+                        code,
+                        sys_message,
+                    )
                 )
             ),
         )
@@ -105,7 +117,7 @@ impl StatusMessage {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //for dynamic types
     pub fn dynamic_error_with_status_code_in_result<T>(status_message: StatusMessage)
-                                                         -> status::Custom<Result<Json<T>, Json<StatusMessage>>> {
+                                                       -> status::Custom<Result<Json<T>, Json<StatusMessage>>> {
         status::Custom(
             status_message.status,
             Err(
@@ -123,7 +135,7 @@ impl StatusMessage {
             Status::Ok,
             Ok(
                 Json(
-                    StatusMessage::custom(message, Status::Ok)
+                    StatusMessage::custom(message, Status::Ok, None, None)
                 )
             ),
         )
@@ -146,6 +158,8 @@ impl StatusMessage {
             StatusMessage::custom(
                 message,
                 Status::BadRequest,
+                None,
+                None,
             )
         )
     }
@@ -154,6 +168,8 @@ impl StatusMessage {
         StatusMessage::custom_with_status_code_in_result(
             message,
             Status::BadRequest,
+            None,
+            None,
         )
     }
 
@@ -163,6 +179,8 @@ impl StatusMessage {
         StatusMessage::custom_with_status_code_in_result(
             message,
             Status::Forbidden,
+            None,
+            None,
         )
     }
 
@@ -174,11 +192,13 @@ impl StatusMessage {
             Status::NotFound,
         )
     }
-    pub fn unauthorized_401_with_status_code_in_result<T>(message: String)
+    pub fn unauthorized_401_with_status_code_in_result<T>(message: String, code: Option<u16>, sys_message: Option<String>)
                                                           -> status::Custom<Result<T, Json<StatusMessage>>> {
         StatusMessage::custom_with_status_code_in_result(
             message,
             Status::Unauthorized,
+            code,
+            sys_message,
         )
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////

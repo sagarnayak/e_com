@@ -26,7 +26,19 @@ impl BlockedForPlatformAuthorization {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let jwt_hash: String = match row.try_get(1) {
+            let user_id: Uuid = match row.try_get(1) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => {
+                        return StatusMessage::bad_request_400_in_result("failed to get user_id ".to_string());
+                    }
+                },
+                Err(error) => {
+                    let error_message = error.to_string();
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
+            };
+            let jwt_hash: String = match row.try_get(2) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -38,7 +50,7 @@ impl BlockedForPlatformAuthorization {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let done: bool = match row.try_get(2) {
+            let done: bool = match row.try_get(3) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -50,7 +62,7 @@ impl BlockedForPlatformAuthorization {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let created: DateTime<Utc> = match row.try_get(3) {
+            let created: DateTime<Utc> = match row.try_get(4) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -62,7 +74,7 @@ impl BlockedForPlatformAuthorization {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let modified: Option<DateTime<Utc>> = match row.try_get(4) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(5) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -77,6 +89,7 @@ impl BlockedForPlatformAuthorization {
 
             let res = BlockedForPlatformAuthorization {
                 id: id.to_hyphenated().to_string(),
+                user_id: user_id.to_hyphenated().to_string(),
                 jwt_hash,
                 done,
                 created,
@@ -92,15 +105,16 @@ impl BlockedForPlatformAuthorization {
 
 #[async_trait]
 impl BlockedForPlatformAuthorizationContracts for BlockedForPlatformAuthorization {
-    async fn add_jwt(jwt: &String, db_pool: &DbPool) -> Result<bool, StatusMessage> {
+    async fn add_jwt(user_id: &String, jwt: &String, db_pool: &DbPool) -> Result<bool, StatusMessage> {
         let jwt = jwt.split(".").collect::<Vec<&str>>()[2];
 
         let client = resolve_client(db_pool).await;
 
         let statement_to_send = &format!(
             "INSERT INTO blocked_for_platform_authorization \
-            (jwt_hash) \
-            VALUES ('{}')",
+            (user_id,jwt_hash) \
+            VALUES ('{}','{}')",
+            &user_id,
             &jwt
         );
 
@@ -121,7 +135,7 @@ impl BlockedForPlatformAuthorizationContracts for BlockedForPlatformAuthorizatio
         )
     }
 
-    async fn find_data(jwt: &String, db_pool: &DbPool) -> Result<BlockedForPlatformAuthorization, StatusMessage> {
+    async fn find_data_with_jwt(jwt: &String, db_pool: &DbPool) -> Result<BlockedForPlatformAuthorization, StatusMessage> {
         let jwt = jwt.split(".").collect::<Vec<&str>>()[2];
 
         let client = resolve_client(db_pool).await;
@@ -164,6 +178,54 @@ impl BlockedForPlatformAuthorizationContracts for BlockedForPlatformAuthorizatio
                     code: Status::NoContent.code,
                     status: Status::NoContent,
                     message: "No data".to_owned(),
+                    sys_message:None,
+                }
+            )
+        }
+    }
+
+    async fn find_data_with_user_id(user_id: &String, db_pool: &DbPool) -> Result<BlockedForPlatformAuthorization, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement_to_send = &format!(
+            "SELECT * FROM blocked_for_platform_authorization \
+            WHERE done = false AND user_id = '{}'",
+            &user_id
+        );
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.query(&statement, &[]).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results_to_send = match BlockedForPlatformAuthorization::convert_results_to_models(&results).await {
+            Ok(positive) => {
+                positive
+            }
+            Err(error) => {
+                return Err(error);
+            }
+        };
+
+        if results_to_send.len() != 0 {
+            let res_to_return = results_to_send[0].clone();
+            Ok(
+                res_to_return
+            )
+        } else {
+            Err(
+                StatusMessage {
+                    code: Status::NoContent.code,
+                    status: Status::NoContent,
+                    message: "No data".to_owned(),
+                    sys_message:None,
                 }
             )
         }

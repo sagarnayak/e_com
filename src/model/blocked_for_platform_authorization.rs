@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct BlockedForPlatformAuthorization {
     pub id: String,
+    pub user_id: String,
     pub jwt_hash: String,
     pub done: bool,
     pub created: DateTime<Utc>,

@@ -1,3 +1,4 @@
+use rand::distributions::Alphanumeric;
 use rand::Rng;
 use rocket::http::{Method, Status};
 use rocket::request::{FromRequest, Outcome, Request};
@@ -47,39 +48,47 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
         fn is_allowed(claims: &Claims, req: &Request) -> bool {
             let method: &Method = &req.method();
             let path = &req.uri().to_string();
+            println!("path to test :: {}", &path);
             let path = if path.contains("?") {
                 path.split("?").collect::<Vec<&str>>()[0]
             } else {
                 path
             };
+            println!("removed ? :: {}", &path);
             let path = if path.contains("/") {
                 let striped_path = path.split("/").collect::<Vec<&str>>()[1];
                 format!("/{}", &striped_path)
             } else {
                 path.to_owned()
             };
+            println!("removed / :: {}", &path);
 
             for auth in claims.authorizations_minified.clone() {
                 let auth_expanded = AuthRolesCrossPaths::full_version(auth);
                 if &auth_expanded.path == &path {
+                    println!("matched path :: {}", &path);
                     match method {
                         Method::Get => {
                             if auth_expanded.get_allowed {
+                                println!("matched get");
                                 return true;
                             }
                         }
                         Method::Post => {
                             if auth_expanded.post_allowed {
+                                println!("matched post");
                                 return true;
                             }
                         }
                         Method::Put => {
                             if auth_expanded.put_allowed {
+                                println!("matched put");
                                 return true;
                             }
                         }
                         Method::Delete => {
                             if auth_expanded.delete_allowed {
+                                println!("matched delete");
                                 return true;
                             }
                         }
@@ -91,25 +100,28 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
             return false;
         }
 
-        async fn should_perform_platform_authentication<'r>(jwt: &String, request: &'r Request<'_>) -> bool {
+        async fn should_perform_platform_authentication<'r>(user_id: &String, jwt: &String, request: &'r Request<'_>) -> bool {
             let should_block = rand::thread_rng().gen_bool(0.5);
 
             if !should_block {
-                return should_block;
+                return false;
             }
 
             let db_pool = match request.rocket().state::<DbPool>() {
                 Some(positive) => { positive }
                 None => {
+                    println!("blocked due to db pool not found");
                     return false;
                 }
             };
 
-            match BlockedForPlatformAuthorization::add_jwt(jwt, &db_pool).await {
+            match BlockedForPlatformAuthorization::add_jwt(&user_id, &jwt, &db_pool).await {
                 Ok(_) => {
+                    println!("blocked after inserting the data to the table");
                     return true;
                 }
                 Err(_) => {
+                    println!("not blocked due to inserting failure");
                     return false;
                 }
             }
@@ -123,14 +135,16 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                 }
             };
 
-            return match BlockedForPlatformAuthorization::find_data(
+            return match BlockedForPlatformAuthorization::find_data_with_jwt(
                 &jwt,
                 &db_pool,
             ).await {
                 Ok(_) => {
+                    println!("found jwt in blocked for platform check");
                     true
                 }
                 Err(_) => {
+                    println!("not found jwt in blocked for platform check");
                     false
                 }
             };
@@ -141,6 +155,7 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                 code: 401,
                 status: Status::Unauthorized,
                 message: AUTHENTICATION_FAILURE.to_string(),
+                sys_message: None,
             })),
             Some(key) => {
                 let validated_result = is_valid(key);
@@ -155,9 +170,6 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                 if if_present_in_blocked_for_platform_authorization_list(
                                     &striped_jwt,
                                     &req,
-                                ).await || should_perform_platform_authentication(
-                                    &striped_jwt,
-                                    &req,
                                 ).await {
                                     return Outcome::Failure(
                                         (
@@ -165,7 +177,31 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                             StatusMessage {
                                                 code: NEED_PLATFORM_AUTH,
                                                 status: Status::Unauthorized,
+                                                message: "Please perform a platform authorization.".to_owned(),
+                                                sys_message: None,
+                                            }
+                                        )
+                                    );
+                                }
+                                if should_perform_platform_authentication(
+                                    &claims.owner,
+                                    &striped_jwt,
+                                    &req,
+                                ).await {
+                                    let rand_string: String = rand::thread_rng()
+                                        .sample_iter(&Alphanumeric)
+                                        .take(30)
+                                        .map(char::from)
+                                        .collect();
+
+                                    return Outcome::Failure(
+                                        (
+                                            Status::Unauthorized,
+                                            StatusMessage {
+                                                code: NEED_PLATFORM_AUTH,
+                                                status: Status::Unauthorized,
                                                 message: "Please perform a platform authorization".to_owned(),
+                                                sys_message: Some(rand_string),
                                             }
                                         )
                                     );
@@ -184,6 +220,7 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                             code: 403,
                                             status: Status::Forbidden,
                                             message: AUTHORIZATION_FAILURE.to_string(),
+                                            sys_message: None,
                                         }
                                     )
                                 )
@@ -197,6 +234,7 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                         code: 401,
                                         status: Status::Unauthorized,
                                         message: status_message.message,
+                                        sys_message: None,
                                     }
                                 )
                             )
@@ -213,6 +251,7 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                             code: 401,
                                             status: Status::Unauthorized,
                                             message: EXPIRED_AUTH_TOKEN.to_string(),
+                                            sys_message: None,
                                         }
                                     )
                                 )
@@ -224,6 +263,7 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                             code: 401,
                                             status: Status::Unauthorized,
                                             message: AUTHENTICATION_FAILURE.to_string(),
+                                            sys_message: None,
                                         }
                                     )
                                 )
@@ -237,6 +277,7 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                         code: 401,
                                         status: Status::Unauthorized,
                                         message: AUTHENTICATION_FAILURE.to_string(),
+                                        sys_message: None,
                                     }
                                 )
                             )

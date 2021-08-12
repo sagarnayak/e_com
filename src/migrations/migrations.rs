@@ -337,6 +337,7 @@ impl MigrationContracts for MigrationStruct {
                 &format!(
                     "CREATE TABLE IF NOT EXISTS blocked_for_platform_authorization(\
                     id uuid default gen_random_uuid(),\
+                    user_id uuid NOT NULL,\
                     jwt_hash varchar(200) NOT NULL,\
                     done bool NOT NULL default false,\
                     created timestamptz default CURRENT_TIMESTAMP NOT NULL,\
