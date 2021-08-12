@@ -19,6 +19,8 @@ fn get_pool() -> Pool {
     let password = database.password;
     let database_name = database.database_name;
 
+    println!("host {} post {} user {} password {} db_name {}", &host, &port, &user, &password, &database_name);
+
     let mut cfg = Config::new();
     cfg.host = Some(host);
     cfg.port = Some(port);

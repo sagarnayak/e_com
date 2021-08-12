@@ -147,6 +147,7 @@ pub enum ENV {
 impl ConfigData {
     pub fn new() -> ConfigData {
         let env: &str = &*std::env::var("RUN_ENV").unwrap_or_else(|_| "dev".into());
+        println!("the env is :: {}", &env);
         return match env {
             "dev" => ConfigData::conf_data_for_env(ENV::Development),
             "prod" => ConfigData::conf_data_for_env(ENV::Production),
