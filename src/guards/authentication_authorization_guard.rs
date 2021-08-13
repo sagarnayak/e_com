@@ -1,19 +1,11 @@
-use std::net::SocketAddr;
+use std::collections::HashMap;
 
-use hyper::{body::HttpBody as _, Client, Uri};
-use hyper::Request as hyper_req;
-use hyper::client::HttpConnector;
-use hyper::Server;
-use hyper_tls::HttpsConnector;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use rocket::http::{Method, Status};
 use rocket::request::{FromRequest, Outcome, Request};
-use rocket::response::Body;
-use rocket::Rocket;
+use rocket::serde::json::Json;
 use serde::{Deserialize, Serialize};
-
-use http::{Request, Response};
 
 use crate::contracts::blocked_for_platform_authorization_contracts::BlockedForPlatformAuthorizationContracts;
 use crate::core::constants::NEED_PLATFORM_AUTH;
@@ -24,6 +16,7 @@ use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 use crate::model::blocked_for_platform_authorization::BlockedForPlatformAuthorization;
 use crate::model::claims::Claims;
 use crate::model::status_message::StatusMessage;
+use crate::model::user_test::{SignedAttestation, UserTest, SignedAttestationResponse};
 use crate::model::user::User;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -188,41 +181,36 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                 }
             };
 
-            let https = HttpsConnector::new();
-            let client =  Client::new();
+            let client = reqwest::Client::new();
 
-                // Client::builder()
-                // .build::<_, hyper::Body>(https);
-
-            let mut request = hyper_req::builder()
-                .method("GET")
-                .uri("https://www.rust-lang.org/")
-                .header("X-Custom-Foo", "Bar")
-                .body(())
-                .unwrap();
-
-            let web_res = client.request(request).await?;
-            let res = match client.get(Uri::from_static("https://reqres.in/api/users/2")).await {
-                Ok(positive) => { positive }
+            match client.post(
+                "https://www.googleapis.com/androidcheck/v1/attestations/verify?key=AIzaSyCmJeN7rfeIYtuL-J-_PMlP8dvTkNL2NEg"
+            )
+                .json(
+                    &SignedAttestation {
+                        signedAttestation: platform_auth_key.to_owned()
+                    }
+                )
+                .send()
+                .await {
+                Ok(positive) => {
+                    println!("Response from google :: {:?}", &positive);
+                    return match positive.json::<SignedAttestationResponse>().await {
+                        Ok(positive_inner) => {
+                            println!("inner positive :: {:?}", &positive_inner);
+                            false
+                        }
+                        Err(error_inner) => {
+                            println!("inner error is :: {}", error_inner.to_string());
+                            false
+                        }
+                    };
+                }
                 Err(error) => {
-                    println!("error :: {}", error.to_string());
+                    println!("error is :: {}", error.to_string());
                     return false;
                 }
             };
-
-            println!("status: {}", res.status());
-
-            let buf = match hyper::body::to_bytes(res).await {
-                Ok(positive) => { positive }
-                Err(error) => {
-                    println!("error ::: {}", error.to_string());
-                    return false;
-                }
-            };
-
-            println!("body: {:?}", buf);
-
-            true
         }
 
         match req.headers().get_one("Authorization") {
