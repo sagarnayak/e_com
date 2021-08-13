@@ -147,13 +147,12 @@ pub enum ENV {
 impl ConfigData {
     pub fn new() -> ConfigData {
         let env: &str = &*std::env::var("RUN_ENV").unwrap_or_else(|_| "dev".into());
-        let google_api_key: &str = &*std::env::var("GOOGLE_API_KEY")
+        /*let google_api_key: &str = &*std::env::var("GOOGLE_API_KEY")
             .unwrap_or_else(|_| "testing_api_key-this_is_not_valid-going_to_panic".into());
         let jwt_key: &str = &*std::env::var("JWT_KEY")
             .unwrap_or_else(|_| "testing_api_key-this_is_not_valid-going_to_panic".into());
         println!("the env is :: {}", &env);
-        println!("the google api key is :: {}", &google_api_key);
-        if google_api_key { }
+        println!("the google api key is :: {}", &google_api_key);*/
         return match env {
             "dev" => ConfigData::conf_data_for_env(ENV::Development),
             "prod" => ConfigData::conf_data_for_env(ENV::Production),
