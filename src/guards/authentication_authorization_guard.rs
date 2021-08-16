@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use base64::decode;
+use jsonwebtoken::encode;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use rocket::http::{Method, Status};
@@ -7,6 +9,7 @@ use rocket::request::{FromRequest, Outcome, Request};
 use rocket::serde::json::Json;
 use serde::{Deserialize, Serialize};
 
+use crate::config_controller::ConfigData;
 use crate::contracts::blocked_for_platform_authorization_contracts::BlockedForPlatformAuthorizationContracts;
 use crate::core::constants::NEED_PLATFORM_AUTH;
 use crate::core::strings::{AUTHENTICATION_FAILURE, AUTHORIZATION_FAILURE, EXPIRED_AUTH_TOKEN};
@@ -15,9 +18,10 @@ use crate::jwt_master::jwt_master::{extract_jwt, validate_jwt};
 use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
 use crate::model::blocked_for_platform_authorization::BlockedForPlatformAuthorization;
 use crate::model::claims::Claims;
+use crate::model::google_jwt_response::GoogleJWTResponse;
 use crate::model::status_message::StatusMessage;
-use crate::model::user_test::{SignedAttestation, UserTest, SignedAttestationResponse};
 use crate::model::user::User;
+use crate::model::user_test::{SignedAttestation, SignedAttestationResponse, UserTest};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AuthenticationAuthorizationGuard {
@@ -53,47 +57,39 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
         fn is_allowed(claims: &Claims, req: &Request) -> bool {
             let method: &Method = &req.method();
             let path = &req.uri().to_string();
-            println!("path to test :: {}", &path);
             let path = if path.contains("?") {
                 path.split("?").collect::<Vec<&str>>()[0]
             } else {
                 path
             };
-            println!("removed ? :: {}", &path);
             let path = if path.contains("/") {
                 let striped_path = path.split("/").collect::<Vec<&str>>()[1];
                 format!("/{}", &striped_path)
             } else {
                 path.to_owned()
             };
-            println!("removed / :: {}", &path);
 
             for auth in claims.authorizations_minified.clone() {
                 let auth_expanded = AuthRolesCrossPaths::full_version(auth);
                 if &auth_expanded.path == &path {
-                    println!("matched path :: {}", &path);
                     match method {
                         Method::Get => {
                             if auth_expanded.get_allowed {
-                                println!("matched get");
                                 return true;
                             }
                         }
                         Method::Post => {
                             if auth_expanded.post_allowed {
-                                println!("matched post");
                                 return true;
                             }
                         }
                         Method::Put => {
                             if auth_expanded.put_allowed {
-                                println!("matched put");
                                 return true;
                             }
                         }
                         Method::Delete => {
                             if auth_expanded.delete_allowed {
-                                println!("matched delete");
                                 return true;
                             }
                         }
@@ -171,7 +167,16 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
 
         async fn verify_platform_authorization<'r>(
             request: &'r Request<'_>,
+            jwt: &str,
+            blocked_for_platform_authorization: &BlockedForPlatformAuthorization,
         ) -> bool {
+            let config_data = match request.rocket().state::<ConfigData>() {
+                Some(positive) => { positive }
+                None => {
+                    return false;
+                }
+            };
+
             let platform_auth_key = match request.headers().get_one("X-Platform-Authorization") {
                 None => {
                     return false;
@@ -181,10 +186,23 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                 }
             };
 
+            let db_pool = match request.rocket().state::<DbPool>() {
+                Some(positive) => { positive }
+                None => {
+                    return false;
+                }
+            };
+
             let client = reqwest::Client::new();
 
+            let google_verification_url = format!(
+                "https://www.googleapis.com/androidcheck/v1/attestations/verify?key={}",
+                &config_data.google_api_key
+            );
+            println!("google url : {}", &google_verification_url);
+
             match client.post(
-                "https://www.googleapis.com/androidcheck/v1/attestations/verify?key=AIzaSyCmJeN7rfeIYtuL-J-_PMlP8dvTkNL2NEg"
+                google_verification_url
             )
                 .json(
                     &SignedAttestation {
@@ -198,7 +216,37 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                     return match positive.json::<SignedAttestationResponse>().await {
                         Ok(positive_inner) => {
                             println!("inner positive :: {:?}", &positive_inner);
-                            false
+                            let jwt_data = platform_auth_key.split(".").collect::<Vec<&str>>()[1];
+                            println!("The data to decode is : {}", jwt_data);
+                            match decode(jwt_data) {
+                                Ok(positive_inner_inner) => {
+                                    println!("the decoded jwt is :: {:?}", std::str::from_utf8(&positive_inner_inner).unwrap());
+                                    let google_jwt_response: GoogleJWTResponse = serde_json::from_str(std::str::from_utf8(&positive_inner_inner).unwrap()).unwrap();
+                                    println!("the google jwt is :: {:?}", google_jwt_response.nonce);
+                                    let encoded_nonce = base64::encode(&blocked_for_platform_authorization.nonce);
+                                    if encoded_nonce != google_jwt_response.nonce {
+                                        println!("failed to match nonce");
+                                        return  false;
+                                    }
+                                }
+                                Err(error_inner_inner) => {
+                                    println!("got error in decoding the jwt :: {}", error_inner_inner);
+                                }
+                            }
+                            let jwt_to_resolve = jwt.split(".").collect::<Vec<&str>>()[2];
+                            let if_done = match BlockedForPlatformAuthorization::done_authorization_for_jwt_hash(
+                                jwt_to_resolve,
+                                db_pool,
+                            ).await {
+                                Ok(positive_inner_inner) => {
+                                    positive_inner_inner
+                                }
+                                Err(error_inner) => {
+                                    println!("error is inserting done auth data to DB : {:?}", &error_inner);
+                                    return false;
+                                }
+                            };
+                            return if_done;
                         }
                         Err(error_inner) => {
                             println!("inner error is :: {}", error_inner.to_string());
@@ -219,7 +267,9 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                 status: Status::Unauthorized,
                 message: AUTHENTICATION_FAILURE.to_string(),
                 sys_message: None,
-            })),
+            }
+            )
+            ),
             Some(key) => {
                 let validated_result = is_valid(key);
                 if validated_result.0 {
@@ -229,9 +279,6 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                 &claims,
                                 req,
                             ) {
-                                let verify_platform_authorization_result = verify_platform_authorization(
-                                    &req
-                                ).await;
                                 let striped_jwt = &strip_bearer_string(key);
                                 let if_present_in_blocked_for_platform_authorization_list_result =
                                     if_present_in_blocked_for_platform_authorization_list(
@@ -240,8 +287,18 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                     ).await;
                                 if if_present_in_blocked_for_platform_authorization_list_result.0 {
                                     let verify_platform_authorization_result = verify_platform_authorization(
-                                        &req
+                                        &req,
+                                        &key,
+                                        &if_present_in_blocked_for_platform_authorization_list_result.1.unwrap(),
                                     ).await;
+                                    if verify_platform_authorization_result {
+                                        return Outcome::Success(
+                                            AuthenticationAuthorizationGuard {
+                                                claims,
+                                                allowed: true,
+                                            }
+                                        );
+                                    }
                                     return Outcome::Failure(
                                         (
                                             Status::Unauthorized,

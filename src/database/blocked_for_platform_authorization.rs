@@ -244,4 +244,29 @@ impl BlockedForPlatformAuthorizationContracts for BlockedForPlatformAuthorizatio
             )
         }
     }
+
+    async fn done_authorization_for_jwt_hash(jwt_hash: &str, db_pool: &DbPool) -> Result<bool, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement_to_send = &format!(
+            "UPDATE blocked_for_platform_authorization \
+            SET done = true \
+            WHERE jwt_hash = '{}'",
+            &jwt_hash
+        );
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.execute(&statement, &[]).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        Ok(true)
+    }
 }

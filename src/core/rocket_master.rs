@@ -1,5 +1,6 @@
 use rocket::{Build, Rocket};
 
+use crate::config_controller::ConfigData;
 use crate::controllers::catchers::for_404;
 use crate::controllers::catchers::not_found;
 use crate::controllers::routes;
@@ -12,4 +13,5 @@ pub fn rocket() -> Rocket<Build> {
         .register("/", catchers![for_404,not_found])
         .mount("/", routes::get_routes())
         .manage(database_master::get_db_pools())
+        .manage(ConfigData::new())
 }

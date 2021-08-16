@@ -1,3 +1,4 @@
+use chrono::format::Item::Error;
 use serde::Deserialize;
 
 use crate::core::constants::{
@@ -33,7 +34,11 @@ use crate::core::constants::{
 };
 
 impl ConfigData {
-    fn conf_data_for_env(environment: ENV) -> ConfigData {
+    fn conf_data_for_env(
+        environment: ENV,
+        google_api_key: String,
+        jwt_key: Option<String>,
+    ) -> ConfigData {
         match environment {
             ENV::Development => ConfigData {
                 database: DatabaseConfig {
@@ -44,7 +49,11 @@ impl ConfigData {
                     database_name: DATABASE_NAME_DEV.to_string(),
                 },
                 jwt: JWTConfig {
-                    secret: JWT_SECRET_DEV.to_string(),
+                    secret: if jwt_key.is_some() {
+                        jwt_key.unwrap()
+                    } else {
+                        JWT_SECRET_DEV.to_string()
+                    },
                 },
                 admin_data: AdminData {
                     admin_name: ADMIN_NAME_DEV.to_string(),
@@ -55,6 +64,7 @@ impl ConfigData {
                     default_page_size: DEFAULT_PAGE_SIZE,
                     max_page_size: MAX_PAGE_SIZE,
                 },
+                google_api_key,
             },
             ENV::Testing => ConfigData {
                 database: DatabaseConfig {
@@ -65,7 +75,11 @@ impl ConfigData {
                     database_name: DATABASE_NAME_TEST.to_string(),
                 },
                 jwt: JWTConfig {
-                    secret: JWT_SECRET_TEST.to_string(),
+                    secret: if jwt_key.is_some() {
+                        jwt_key.unwrap()
+                    } else {
+                        JWT_SECRET_DEV.to_string()
+                    },
                 },
                 admin_data: AdminData {
                     admin_name: ADMIN_NAME_TEST.to_string(),
@@ -76,6 +90,7 @@ impl ConfigData {
                     default_page_size: DEFAULT_PAGE_SIZE,
                     max_page_size: MAX_PAGE_SIZE,
                 },
+                google_api_key,
             },
             ENV::Production => ConfigData {
                 database: DatabaseConfig {
@@ -86,7 +101,11 @@ impl ConfigData {
                     database_name: DATABASE_NAME_PROD.to_string(),
                 },
                 jwt: JWTConfig {
-                    secret: JWT_SECRET_PROD.to_string(),
+                    secret: if jwt_key.is_some() {
+                        jwt_key.unwrap()
+                    } else {
+                        JWT_SECRET_DEV.to_string()
+                    },
                 },
                 admin_data: AdminData {
                     admin_name: ADMIN_NAME_PROD.to_string(),
@@ -97,6 +116,7 @@ impl ConfigData {
                     default_page_size: DEFAULT_PAGE_SIZE,
                     max_page_size: MAX_PAGE_SIZE,
                 },
+                google_api_key,
             },
         }
     }
@@ -135,6 +155,7 @@ pub struct ConfigData {
     pub jwt: JWTConfig,
     pub admin_data: AdminData,
     pub paging_conf: PagingConf,
+    pub google_api_key: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -147,17 +168,46 @@ pub enum ENV {
 impl ConfigData {
     pub fn new() -> ConfigData {
         let env: &str = &*std::env::var("RUN_ENV").unwrap_or_else(|_| "dev".into());
-        /*let google_api_key: &str = &*std::env::var("GOOGLE_API_KEY")
-            .unwrap_or_else(|_| "testing_api_key-this_is_not_valid-going_to_panic".into());
-        let jwt_key: &str = &*std::env::var("JWT_KEY")
-            .unwrap_or_else(|_| "testing_api_key-this_is_not_valid-going_to_panic".into());
+        let google_api_key = match std::env::var("GOOGLE_API_KEY") {
+            Ok(positive) => {
+                positive
+            }
+            Err(_) => {
+                println!("we need a google key to proceed.");
+                panic!();
+            }
+        };
+        let jwt_key: Option<String> = match std::env::var("JWT_KEY") {
+            Ok(positive) => {
+                Some(positive)
+            }
+            Err(_) => {
+                println!("Dint found any jwt key. Going to use default in constants.");
+                None
+            }
+        };
         println!("the env is :: {}", &env);
-        println!("the google api key is :: {}", &google_api_key);*/
         return match env {
-            "dev" => ConfigData::conf_data_for_env(ENV::Development),
-            "prod" => ConfigData::conf_data_for_env(ENV::Production),
-            "test" => ConfigData::conf_data_for_env(ENV::Testing),
-            _ => ConfigData::conf_data_for_env(ENV::Development),
+            "dev" => ConfigData::conf_data_for_env(
+                ENV::Development,
+                google_api_key,
+                jwt_key,
+            ),
+            "prod" => ConfigData::conf_data_for_env(
+                ENV::Production,
+                google_api_key,
+                jwt_key,
+            ),
+            "test" => ConfigData::conf_data_for_env(
+                ENV::Testing,
+                google_api_key,
+                jwt_key,
+            ),
+            _ => ConfigData::conf_data_for_env(
+                ENV::Development,
+                google_api_key,
+                jwt_key,
+            ),
         };
     }
 }
