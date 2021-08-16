@@ -226,7 +226,7 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                     let encoded_nonce = base64::encode(&blocked_for_platform_authorization.nonce);
                                     if encoded_nonce != google_jwt_response.nonce {
                                         println!("failed to match nonce");
-                                        return  false;
+                                        return false;
                                     }
                                 }
                                 Err(error_inner_inner) => {
