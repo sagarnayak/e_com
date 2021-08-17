@@ -16,3 +16,5 @@ pub mod table_rows_count;
 pub mod blocked_for_platform_authorization;
 pub mod user_test;
 pub mod google_jwt_response;
+pub mod cached_auth_data;
+pub mod refresh_token_log;
