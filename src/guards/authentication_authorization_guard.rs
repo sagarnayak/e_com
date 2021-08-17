@@ -220,10 +220,18 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                             println!("The data to decode is : {}", jwt_data);
                             match decode(jwt_data) {
                                 Ok(positive_inner_inner) => {
-                                    println!("the decoded jwt is :: {:?}", std::str::from_utf8(&positive_inner_inner).unwrap());
-                                    let google_jwt_response: GoogleJWTResponse = serde_json::from_str(std::str::from_utf8(&positive_inner_inner).unwrap()).unwrap();
+                                    println!("the decoded jwt is :: {:?}",
+                                             std::str::from_utf8(&positive_inner_inner).unwrap()
+                                    );
+                                    let google_jwt_response: GoogleJWTResponse =
+                                        serde_json::from_str(
+                                            std::str::from_utf8(
+                                                &positive_inner_inner).unwrap()
+                                        ).unwrap();
                                     println!("the google jwt is :: {:?}", google_jwt_response.nonce);
-                                    let encoded_nonce = base64::encode(&blocked_for_platform_authorization.nonce);
+                                    let encoded_nonce = base64::encode(
+                                        &blocked_for_platform_authorization.nonce
+                                    );
                                     if encoded_nonce != google_jwt_response.nonce {
                                         println!("failed to match nonce");
                                         return false;
@@ -234,7 +242,8 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                 }
                             }
                             let jwt_to_resolve = jwt.split(".").collect::<Vec<&str>>()[2];
-                            let if_done = match BlockedForPlatformAuthorization::done_authorization_for_jwt_hash(
+                            let if_done =
+                                match BlockedForPlatformAuthorization::done_authorization_for_jwt_hash(
                                 jwt_to_resolve,
                                 db_pool,
                             ).await {
@@ -286,7 +295,8 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                                         &req,
                                     ).await;
                                 if if_present_in_blocked_for_platform_authorization_list_result.0 {
-                                    let verify_platform_authorization_result = verify_platform_authorization(
+                                    let verify_platform_authorization_result =
+                                        verify_platform_authorization(
                                         &req,
                                         &key,
                                         &if_present_in_blocked_for_platform_authorization_list_result.1.unwrap(),
