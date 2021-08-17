@@ -7,6 +7,8 @@ use crate::model::user::User;
 
 #[async_trait]
 pub trait UserContracts {
-    async fn find_user_with_email(email: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage>;
-    async fn find_user_with_id(id: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage>;
+    async fn find_user_with_email(email: String, db_pool: &State<DbPool>)
+                                  -> Result<User, StatusMessage>;
+    async fn find_user_with_id(id: String, db_pool: &State<DbPool>)
+                               -> Result<User, StatusMessage>;
 }

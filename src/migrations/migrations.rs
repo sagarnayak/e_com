@@ -63,6 +63,18 @@ impl MigrationContracts for MigrationStruct {
                     post_available bool NOT NULL default false,\
                     put_available bool NOT NULL default false,\
                     delete_available bool NOT NULL default false,\
+                    can_delegate_get bool NOT NULL default false,\
+                    can_delegate_post bool NOT NULL default false,\
+                    can_delegate_put bool NOT NULL default false,\
+                    can_delegate_delete bool NOT NULL default false,\
+                    force_delegate_get bool NOT NULL default false,\
+                    force_delegate_post bool NOT NULL default false,\
+                    force_delegate_put bool NOT NULL default false,\
+                    force_delegate_delete bool NOT NULL default false,\
+                    can_access_for_children_get bool NOT NULL default false,\
+                    can_access_for_children_post bool NOT NULL default false,\
+                    can_access_for_children_put bool NOT NULL default false,\
+                    can_access_for_children_delete bool NOT NULL default false,\
                     created timestamptz default CURRENT_TIMESTAMP,\
                     modified timestamptz,\
                     PRIMARY KEY (id) )"
@@ -100,6 +112,7 @@ impl MigrationContracts for MigrationStruct {
                     derived_from uuid,\
                     name varchar(100) NOT NULL UNIQUE,\
                     can_delegate bool NOT NULL default false,\
+                    can_access_for_children bool NOT NULL default false,\
                     enabled bool NOT NULL default true,\
                     valid_from timestamptz,\
                     valid_to timestamptz,\
@@ -149,6 +162,10 @@ impl MigrationContracts for MigrationStruct {
                     can_delegate_post bool NOT NULL default false,\
                     can_delegate_put bool NOT NULL default false,\
                     can_delegate_delete bool NOT NULL default false,\
+                    can_access_for_children_get bool NOT NULL default false,\
+                    can_access_for_children_post bool NOT NULL default false,\
+                    can_access_for_children_put bool NOT NULL default false,\
+                    can_access_for_children_delete bool NOT NULL default false,\
                     where_replacement varchar(100),\
                     created timestamptz default CURRENT_TIMESTAMP,\
                     modified timestamptz,\

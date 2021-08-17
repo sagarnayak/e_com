@@ -76,12 +76,24 @@ pub async fn enter_seed_data_to_paths(db_pool: &DbPool) {
 
     for path in get_paths() {
         let value = format!(
-            " ('{}',{},{},{},{}) ",
+            " ('{}',{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}) ",
             path.path,
             path.get_available,
             path.post_available,
             path.put_available,
-            path.delete_available
+            path.delete_available,
+            path.can_delegate_get,
+            path.can_delegate_post,
+            path.can_delegate_put,
+            path.can_delegate_delete,
+            path.force_delegate_get,
+            path.force_delegate_post,
+            path.force_delegate_put,
+            path.force_delegate_delete,
+            path.can_access_for_children_get,
+            path.can_access_for_children_post,
+            path.can_access_for_children_put,
+            path.can_access_for_children_delete,
         );
         if values_string == " VALUES " {
             values_string.push_str(&value);
@@ -97,7 +109,19 @@ pub async fn enter_seed_data_to_paths(db_pool: &DbPool) {
                 get_available,\
                 post_available,\
                 put_available,\
-                delete_available\
+                delete_available,\
+                can_delegate_get,\
+                can_delegate_post,\
+                can_delegate_put,\
+                can_delegate_delete,\
+                force_delegate_get,\
+                force_delegate_post,\
+                force_delegate_put,\
+                force_delegate_delete,\
+                can_access_for_children_get,\
+                can_access_for_children_post,\
+                can_access_for_children_put,\
+                can_access_for_children_delete\
                 ) \
                 {}",
         values_string
@@ -141,11 +165,13 @@ pub async fn enter_seed_data_to_roles(db_pool: &DbPool, id: &Uuid) {
                 id,\
                 name,\
                 can_delegate,\
+                can_access_for_children,\
                 enabled\
                 ) \
                 VALUES (\
                 '{}',\
                 'admin',\
+                true,\
                 true,\
                 true\
                 )",
@@ -266,10 +292,14 @@ pub async fn enter_seed_data_to_auth_roles_cross_paths(db_pool: &DbPool) {
 
     for path in paths {
         let value = format!(
-            " ('{}','{}','{}',{},{},{},{},{},{},{},{}) ",
+            " ('{}','{}','{}',{},{},{},{},{},{},{},{},{},{},{},{}) ",
             admin_role.id,
             path.id.unwrap(),
             path.path,
+            path.get_available,
+            path.post_available,
+            path.put_available,
+            path.delete_available,
             path.get_available,
             path.post_available,
             path.put_available,
@@ -301,7 +331,11 @@ pub async fn enter_seed_data_to_auth_roles_cross_paths(db_pool: &DbPool) {
                 can_delegate_get,\
                 can_delegate_post,\
                 can_delegate_put,\
-                can_delegate_delete\
+                can_delegate_delete,\
+                can_access_for_children_get,\
+                can_access_for_children_post,\
+                can_access_for_children_put,\
+                can_access_for_children_delete\
                 ) \
                 {}",
                 values_string

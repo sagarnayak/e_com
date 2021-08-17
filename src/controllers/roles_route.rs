@@ -30,7 +30,10 @@ pub async fn get_my_role(
         }
     };
 
-    let user = match User::find_user_with_id(authentication_authorization_guard.claims.owner.clone(), db_pool).await {
+    let user = match User::find_user_with_id(
+        authentication_authorization_guard.claims.owner.clone(),
+        db_pool,
+    ).await {
         Ok(positive) => {
             positive
         }
@@ -69,12 +72,13 @@ pub async fn create_role(
     db_pool: &State<DbPool>,
 )
     -> status::Custom<Result<Json<StatusMessage>, Json<StatusMessage>>> {
-    let authentication_authorization_guard = match authentication_authorization_guard {
-        Ok(positive) => { positive }
-        Err(error) => {
-            return StatusMessage::dynamic_error_with_status_code_in_result(error);
-        }
-    };
+    let authentication_authorization_guard =
+        match authentication_authorization_guard {
+            Ok(positive) => { positive }
+            Err(error) => {
+                return StatusMessage::dynamic_error_with_status_code_in_result(error);
+            }
+        };
 
     let user = match User::find_user_with_id(
         authentication_authorization_guard.claims.owner,
@@ -143,12 +147,13 @@ pub async fn find_roles_created_by_me(
     size: Option<u32>,
 )
     -> status::Custom<Result<Json<PageResponse<Role>>, Json<StatusMessage>>> {
-    let authentication_authorization_guard = match authentication_authorization_guard {
-        Ok(positive) => { positive }
-        Err(error) => {
-            return StatusMessage::dynamic_error_with_status_code_in_result(error);
-        }
-    };
+    let authentication_authorization_guard =
+        match authentication_authorization_guard {
+            Ok(positive) => { positive }
+            Err(error) => {
+                return StatusMessage::dynamic_error_with_status_code_in_result(error);
+            }
+        };
 
     let user = match User::find_user_with_id(
         authentication_authorization_guard.claims.owner,
@@ -235,12 +240,13 @@ pub async fn find_roles_created_by_specific_user(
     size: Option<u32>,
 )
     -> status::Custom<Result<Json<PageResponse<Role>>, Json<StatusMessage>>> {
-    let authentication_authorization_guard = match authentication_authorization_guard {
-        Ok(positive) => { positive }
-        Err(error) => {
-            return StatusMessage::dynamic_error_with_status_code_in_result(error);
-        }
-    };
+    let authentication_authorization_guard =
+        match authentication_authorization_guard {
+            Ok(positive) => { positive }
+            Err(error) => {
+                return StatusMessage::dynamic_error_with_status_code_in_result(error);
+            }
+        };
 
     let user = match User::find_user_with_id(
         authentication_authorization_guard.claims.owner,

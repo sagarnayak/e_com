@@ -77,7 +77,8 @@ pub async fn authenticate(
     ).await {
         Ok(_) => {
             return StatusMessage::unauthorized_401_with_status_code_in_result(
-                "Please perform a platform authorization on your previous logged in device or contact admin".to_owned(),
+                "Please perform a platform authorization on your previous \
+                logged in device or contact admin".to_owned(),
                 Some(NEED_PLATFORM_AUTH),
                 None,
             );

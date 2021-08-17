@@ -16,6 +16,10 @@ pub struct AuthRolesCrossPaths {
     pub can_delegate_post: bool,
     pub can_delegate_put: bool,
     pub can_delegate_delete: bool,
+    pub can_access_for_children_get: bool,
+    pub can_access_for_children_post: bool,
+    pub can_access_for_children_put: bool,
+    pub can_access_for_children_delete: bool,
     pub where_replacement: Option<String>,
     pub created: Option<DateTime<Utc>>,
     pub modified: Option<DateTime<Utc>>,
@@ -24,7 +28,7 @@ pub struct AuthRolesCrossPaths {
 impl AuthRolesCrossPaths {
     pub fn get_minified_version(&self) -> String {
         format!(
-            "{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}",
+            "{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}",
             self.id,
             "0".to_owned(),
             "0".to_owned(),
@@ -37,6 +41,10 @@ impl AuthRolesCrossPaths {
             if self.can_delegate_post { "1" } else { "0" },
             if self.can_delegate_put { "1" } else { "0" },
             if self.can_delegate_delete { "1" } else { "0" },
+            if self.can_access_for_children_get { "1" } else { "0" },
+            if self.can_access_for_children_post { "1" } else { "0" },
+            if self.can_access_for_children_put { "1" } else { "0" },
+            if self.can_access_for_children_delete { "1" } else { "0" },
             match &self.where_replacement {
                 Some(positive) => {
                     positive.to_owned()
@@ -64,7 +72,11 @@ impl AuthRolesCrossPaths {
             can_delegate_post: if splits[9].to_owned() == "1" { true } else { false },
             can_delegate_put: if splits[10].to_owned() == "1" { true } else { false },
             can_delegate_delete: if splits[11].to_owned() == "1" { true } else { false },
-            where_replacement: if splits[12].to_owned() != "0" { Some(splits[8].to_owned()) } else { None },
+            can_access_for_children_get: if splits[12].to_owned() == "1" { true } else { false },
+            can_access_for_children_post: if splits[13].to_owned() == "1" { true } else { false },
+            can_access_for_children_put: if splits[14].to_owned() == "1" { true } else { false },
+            can_access_for_children_delete: if splits[15].to_owned() == "1" { true } else { false },
+            where_replacement: if splits[16].to_owned() != "0" { Some(splits[16].to_owned()) } else { None },
             created: None,
             modified: None,
         }

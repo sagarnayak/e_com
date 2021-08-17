@@ -49,35 +49,42 @@ impl Role {
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let enabled: bool = match row.try_get(4) {
+            let can_access_for_children: bool = match row.try_get(4) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let enabled: bool = match row.try_get(5) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get enabled ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let valid_from: Option<DateTime<Utc>> = match row.try_get(5) {
+            let valid_from: Option<DateTime<Utc>> = match row.try_get(6) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let valid_to: Option<DateTime<Utc>> = match row.try_get(6) {
+            let valid_to: Option<DateTime<Utc>> = match row.try_get(7) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let created: DateTime<Utc> = match row.try_get(7) {
+            let created: DateTime<Utc> = match row.try_get(8) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get enabled ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let modified: Option<DateTime<Utc>> = match row.try_get(8) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(9) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
@@ -95,6 +102,7 @@ impl Role {
                 },
                 name,
                 can_delegate,
+                can_access_for_children,
                 enabled,
                 valid_from,
                 valid_to,

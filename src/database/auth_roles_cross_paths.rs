@@ -97,21 +97,49 @@ impl AuthRolesCrossPaths {
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let where_replacement: Option<String> = match row.try_get(12) {
+            let can_access_for_children_get: bool = match row.try_get(12) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_get ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let can_access_for_children_post: bool = match row.try_get(13) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_post ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let can_access_for_children_put: bool = match row.try_get(14) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_put ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let can_access_for_children_delete: bool = match row.try_get(15) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_delete ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let where_replacement: Option<String> = match row.try_get(16) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let created: DateTime<Utc> = match row.try_get(13) {
+            let created: DateTime<Utc> = match row.try_get(17) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get created ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let modified: Option<DateTime<Utc>> = match row.try_get(14) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(18) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
@@ -132,6 +160,10 @@ impl AuthRolesCrossPaths {
                 can_delegate_post,
                 can_delegate_put,
                 can_delegate_delete,
+                can_access_for_children_get,
+                can_access_for_children_post,
+                can_access_for_children_put,
+                can_access_for_children_delete,
                 where_replacement,
                 created: Some(created),
                 modified,
