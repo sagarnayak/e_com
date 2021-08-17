@@ -13,12 +13,13 @@ pub async fn me(
     authentication_authorization_guard: Result<AuthenticationAuthorizationGuard, StatusMessage>,
     db_pool: &State<DbPool>,
 ) -> status::Custom<Result<Json<User>, Json<StatusMessage>>> {
-    let authentication_authorization_guard = match authentication_authorization_guard {
-        Ok(positive) => { positive }
-        Err(error) => {
-            return StatusMessage::dynamic_error_with_status_code_in_result(error);
-        }
-    };
+    let authentication_authorization_guard =
+        match authentication_authorization_guard {
+            Ok(positive) => { positive }
+            Err(error) => {
+                return StatusMessage::dynamic_error_with_status_code_in_result(error);
+            }
+        };
 
     let user = match User::find_user_with_id(
         authentication_authorization_guard.claims.owner.clone(),
