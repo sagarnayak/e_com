@@ -12,6 +12,74 @@ pub struct MigrationStruct;
 
 #[async_trait]
 impl MigrationContracts for MigrationStruct {
+    async fn may_create_cached_auth_data_table(db_pool: &DbPool) -> Result<String, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement = match client
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS cached_auth_data(\
+                    id uuid default gen_random_uuid(),\
+                    auth_string varchar(500) NOT NULL,\
+                    exp timestamptz,\
+                    created timestamptz default CURRENT_TIMESTAMP,\
+                    modified timestamptz,\
+                    PRIMARY KEY (id) )"
+                )
+            )
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            ),
+        };
+
+        let results = match client.execute(
+            &statement,
+            &[],
+        ).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            )
+        };
+
+        Ok(format!("done :: {}", results))
+    }
+
+    async fn may_create_refresh_token_logs_table(db_pool: &DbPool) -> Result<String, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement = match client
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS refresh_token_log(\
+                    id uuid default gen_random_uuid(),\
+                    token_hash varchar(100) NOT NULL,\
+                    created timestamptz default CURRENT_TIMESTAMP,\
+                    modified timestamptz,\
+                    PRIMARY KEY (id) )"
+                )
+            )
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            ),
+        };
+
+        let results = match client.execute(
+            &statement,
+            &[],
+        ).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            )
+        };
+
+        Ok(format!("done :: {}", results))
+    }
     async fn may_create_table_rows_count_table(db_pool: &DbPool) -> Result<String, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
