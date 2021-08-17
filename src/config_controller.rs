@@ -1,4 +1,3 @@
-use chrono::format::Item::Error;
 use serde::Deserialize;
 
 use crate::core::constants::{
@@ -78,7 +77,7 @@ impl ConfigData {
                     secret: if jwt_key.is_some() {
                         jwt_key.unwrap()
                     } else {
-                        JWT_SECRET_DEV.to_string()
+                        JWT_SECRET_TEST.to_string()
                     },
                 },
                 admin_data: AdminData {
@@ -104,7 +103,7 @@ impl ConfigData {
                     secret: if jwt_key.is_some() {
                         jwt_key.unwrap()
                     } else {
-                        JWT_SECRET_DEV.to_string()
+                        JWT_SECRET_PROD.to_string()
                     },
                 },
                 admin_data: AdminData {
