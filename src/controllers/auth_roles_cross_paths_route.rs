@@ -21,18 +21,11 @@ pub async fn get_available_paths(
             }
         };
 
-    let mut auth_roles_cross_paths = vec![];
-    for auth in authentication_authorization_guard.claims.authorizations_minified {
-        auth_roles_cross_paths.push(
-            AuthRolesCrossPaths::full_version(auth)
-        )
-    }
-
     status::Custom(
         Status::Ok,
         Ok(
             Json(
-                auth_roles_cross_paths
+                authentication_authorization_guard.auth_expanded
             )
         ),
     )

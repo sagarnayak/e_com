@@ -4,4 +4,5 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct AuthenticationResponse {
     pub jwt: String,
+    pub refresh_token: String,
 }

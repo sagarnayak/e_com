@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct Path {
     pub id: Option<String>,
     pub path: String,
+    pub readable_path: String,
     pub get_available: bool,
     pub post_available: bool,
     pub put_available: bool,

@@ -121,12 +121,14 @@ pub async fn authenticate(
 
     match create_jwt(
         60 * 60,
+        60 * 60 * 24 * 30,
         &user,
         auth_roles_cross_paths,
-    ) {
+        &db_pool,
+    ).await {
         Ok(positive) => status::Custom(
             Status::Ok,
-            Ok(Json(AuthenticationResponse { jwt: positive })),
+            Ok(Json(AuthenticationResponse { jwt: positive.0, refresh_token: positive.1 })),
         ),
         Err(error) => status::Custom(
             Status::BadRequest,

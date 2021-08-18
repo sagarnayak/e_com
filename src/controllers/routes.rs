@@ -16,7 +16,8 @@ pub fn get_paths() -> Vec<Path> {
     paths.push(
         Path {
             id: None,
-            path: "/".to_string(),
+            path: "^(/)$".to_string(),
+            readable_path: "/".to_owned(),
             get_available: true,
             post_available: false,
             put_available: false,
@@ -41,7 +42,8 @@ pub fn get_paths() -> Vec<Path> {
     paths.push(
         Path {
             id: None,
-            path: "/authenticate".to_string(),
+            path: "^(/authenticate)$".to_string(),
+            readable_path: "/authenticate".to_owned(),
             get_available: false,
             post_available: true,
             put_available: false,
@@ -66,7 +68,8 @@ pub fn get_paths() -> Vec<Path> {
     paths.push(
         Path {
             id: None,
-            path: "/paths".to_string(),
+            path: "^(/paths)$".to_string(),
+            readable_path: "/paths".to_owned(),
             get_available: true,
             post_available: false,
             put_available: false,
@@ -91,7 +94,8 @@ pub fn get_paths() -> Vec<Path> {
     paths.push(
         Path {
             id: None,
-            path: "/role".to_string(),
+            path: "^(/role)$".to_string(),
+            readable_path: "/role".to_string(),
             get_available: true,
             post_available: false,
             put_available: false,
@@ -116,7 +120,8 @@ pub fn get_paths() -> Vec<Path> {
     paths.push(
         Path {
             id: None,
-            path: "/roles".to_string(),
+            path: "^(/roles)/?.*$".to_string(),
+            readable_path: "/roles".to_string(),
             get_available: true,
             post_available: false,
             put_available: false,
@@ -141,7 +146,8 @@ pub fn get_paths() -> Vec<Path> {
     paths.push(
         Path {
             id: None,
-            path: "/me".to_string(),
+            path: "^(/me)$".to_string(),
+            readable_path: "/me".to_string(),
             get_available: true,
             post_available: false,
             put_available: false,

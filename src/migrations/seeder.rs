@@ -76,8 +76,9 @@ pub async fn enter_seed_data_to_paths(db_pool: &DbPool) {
 
     for path in get_paths() {
         let value = format!(
-            " ('{}',{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}) ",
+            " ('{}','{}',{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}) ",
             path.path,
+            path.readable_path,
             path.get_available,
             path.post_available,
             path.put_available,
@@ -106,6 +107,7 @@ pub async fn enter_seed_data_to_paths(db_pool: &DbPool) {
     let statement = &format!(
         "INSERT INTO paths (\
                 path,\
+                readable_path,\
                 get_available,\
                 post_available,\
                 put_available,\

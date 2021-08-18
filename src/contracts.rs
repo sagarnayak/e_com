@@ -5,3 +5,4 @@ pub mod mobile_number_contracts;
 pub mod auth_roles_cross_paths_contracts;
 pub mod table_rows_count_contracts;
 pub mod blocked_for_platform_authorization_contracts;
+pub mod cached_auth_data_contracts;

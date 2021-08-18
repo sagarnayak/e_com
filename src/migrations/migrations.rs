@@ -20,8 +20,8 @@ impl MigrationContracts for MigrationStruct {
                 &format!(
                     "CREATE TABLE IF NOT EXISTS cached_auth_data(\
                     id uuid default gen_random_uuid(),\
-                    auth_string varchar(500) NOT NULL,\
-                    exp timestamptz,\
+                    auth_string varchar(1000) NOT NULL,\
+                    exp timestamptz NOT NULL,\
                     created timestamptz default CURRENT_TIMESTAMP,\
                     modified timestamptz,\
                     PRIMARY KEY (id) )"
@@ -127,6 +127,7 @@ impl MigrationContracts for MigrationStruct {
                     "CREATE TABLE IF NOT EXISTS paths(\
                     id uuid default gen_random_uuid(),\
                     path varchar(100) NOT NULL,\
+                    readable_path varchar(100) NOT NULL,\
                     get_available bool NOT NULL default false,\
                     post_available bool NOT NULL default false,\
                     put_available bool NOT NULL default false,\

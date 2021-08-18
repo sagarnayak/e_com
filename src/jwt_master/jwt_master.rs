@@ -1,29 +1,58 @@
-use chrono::Utc;
+use std::ops::Add;
+
+use chrono::{Duration, Utc};
 use jsonwebtoken::{Algorithm, decode, DecodingKey, encode, EncodingKey, Header, Validation};
 use jsonwebtoken::errors::ErrorKind;
 
 use crate::config_controller::ConfigData;
+use crate::contracts::cached_auth_data_contracts::CachedAuthDataContracts;
 use crate::core::strings::FAILED_TO_CREATE_JWT;
+use crate::database::db_pool::DbPool;
 use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
+use crate::model::cached_auth_data::CachedAuthData;
 use crate::model::claims::Claims;
+use crate::model::refresh_claims::RefreshClaims;
 use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
 
-pub fn create_jwt(
+pub async fn create_jwt(
     exp_after_secs: i64,
+    exp_after_secs_for_refresh: i64,
     user: &User,
     auth_roles_cross_paths: Vec<AuthRolesCrossPaths>,
-) -> Result<String, StatusMessage> {
-    let mut minified_auth_roles_cross_paths = vec![];
+    db_pool: &DbPool,
+) -> Result<(String, String), StatusMessage> {
+    let mut minified_auth_roles_cross_paths: String = "".to_owned();
     for auth in auth_roles_cross_paths {
-        minified_auth_roles_cross_paths.push(
-            auth.get_minified_version()
-        )
+        let minified_version = auth.get_minified_version();
+        if minified_auth_roles_cross_paths.len() == 0 {
+            minified_auth_roles_cross_paths = minified_version;
+        } else {
+            minified_auth_roles_cross_paths.push_str(
+                &format!(
+                    ",{}",
+                    &minified_version
+                )
+            )
+        }
     }
+    let cached_data_id = match CachedAuthData::insert_new(
+        &minified_auth_roles_cross_paths,
+        Utc::now() + Duration::seconds(exp_after_secs + 2),
+        &db_pool,
+    ).await {
+        Ok(positive) => {
+            positive
+        }
+        Err(error) => {
+            return StatusMessage::bad_request_400_in_result_with_status_message(error);
+        }
+    };
+
     let my_claims =
         Claims {
             owner: user.id.clone(),
-            authorizations_minified: minified_auth_roles_cross_paths,
+            auth_data_id: cached_data_id,
             exp: (Utc::now().timestamp() + exp_after_secs) as usize,
         };
 
@@ -38,7 +67,22 @@ pub fn create_jwt(
         Err(_) => return StatusMessage::bad_request_400_in_result(FAILED_TO_CREATE_JWT.to_string()),
     };
 
-    Ok(token)
+    let refresh_claims = RefreshClaims {
+        owner: user.id.clone(),
+        jwt_hash: token.split(".").collect::<Vec<&str>>()[2].to_owned(),
+        exp: (Utc::now().timestamp() + (exp_after_secs_for_refresh)) as usize,
+    };
+
+    let refresh_token = match encode(
+        &header,
+        &refresh_claims,
+        &EncodingKey::from_secret(ConfigData::new().jwt.secret.as_bytes()),
+    ) {
+        Ok(t) => t,
+        Err(_) => return StatusMessage::bad_request_400_in_result(FAILED_TO_CREATE_JWT.to_string()),
+    };
+
+    Ok((token, refresh_token))
 }
 
 pub fn validate_jwt(jwt: &str) -> (bool, bool) {

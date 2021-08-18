@@ -3,6 +3,7 @@ pub mod user;
 pub mod authentication_request;
 pub mod authentication_response;
 pub mod claims;
+pub mod refresh_claims;
 pub mod role;
 pub mod role_request;
 pub mod mobile_number;

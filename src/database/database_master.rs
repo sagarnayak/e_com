@@ -112,4 +112,16 @@ pub async fn may_execute_migrations() {
         }
         Err(error) => println!("blocked_for_platform_authorization table creation error error is {:?}", error),
     }
+    match MigrationStruct::may_create_cached_auth_data_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table cached_auth_data completed.");
+        }
+        Err(error) => println!("cached_auth_data table creation error error is {:?}", error),
+    }
+    match MigrationStruct::may_create_refresh_token_logs_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table refresh_token_logs completed.");
+        }
+        Err(error) => println!("refresh_token_logs table creation error error is {:?}", error),
+    }
 }

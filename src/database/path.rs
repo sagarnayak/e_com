@@ -37,7 +37,19 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let get_available: bool = match row.try_get(2) {
+            let readable_path: String = match row.try_get(2) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => {
+                        return StatusMessage::bad_request_400_in_result("failed to get readable_path ".to_string());
+                    }
+                },
+                Err(error) => {
+                    let error_message = error.to_string();
+                    return StatusMessage::bad_request_400_in_result(error_message);
+                }
+            };
+            let get_available: bool = match row.try_get(3) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -49,7 +61,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let post_available: bool = match row.try_get(3) {
+            let post_available: bool = match row.try_get(4) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -61,7 +73,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let put_available: bool = match row.try_get(4) {
+            let put_available: bool = match row.try_get(5) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -73,7 +85,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let delete_available: bool = match row.try_get(5) {
+            let delete_available: bool = match row.try_get(6) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -85,7 +97,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let can_delegate_get: bool = match row.try_get(6) {
+            let can_delegate_get: bool = match row.try_get(7) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -97,7 +109,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let can_delegate_post: bool = match row.try_get(7) {
+            let can_delegate_post: bool = match row.try_get(8) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -109,7 +121,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let can_delegate_put: bool = match row.try_get(8) {
+            let can_delegate_put: bool = match row.try_get(9) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -121,7 +133,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let can_delegate_delete: bool = match row.try_get(9) {
+            let can_delegate_delete: bool = match row.try_get(10) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -133,7 +145,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let force_delegate_get: bool = match row.try_get(10) {
+            let force_delegate_get: bool = match row.try_get(11) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -145,7 +157,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let force_delegate_post: bool = match row.try_get(11) {
+            let force_delegate_post: bool = match row.try_get(12) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -157,7 +169,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let force_delegate_put: bool = match row.try_get(12) {
+            let force_delegate_put: bool = match row.try_get(13) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -169,7 +181,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let force_delegate_delete: bool = match row.try_get(13) {
+            let force_delegate_delete: bool = match row.try_get(14) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -181,7 +193,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let can_access_for_children_get: bool = match row.try_get(14) {
+            let can_access_for_children_get: bool = match row.try_get(15) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -193,7 +205,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let can_access_for_children_post: bool = match row.try_get(15) {
+            let can_access_for_children_post: bool = match row.try_get(16) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -205,7 +217,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let can_access_for_children_put: bool = match row.try_get(16) {
+            let can_access_for_children_put: bool = match row.try_get(17) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -217,7 +229,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let can_access_for_children_delete: bool = match row.try_get(17) {
+            let can_access_for_children_delete: bool = match row.try_get(18) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -229,7 +241,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let created: Option<DateTime<Utc>> = match row.try_get(18) {
+            let created: Option<DateTime<Utc>> = match row.try_get(19) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -241,7 +253,7 @@ impl Path {
                     return StatusMessage::bad_request_400_in_result(error_message);
                 }
             };
-            let modified: Option<DateTime<Utc>> = match row.try_get(19) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(20) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => {
@@ -257,6 +269,7 @@ impl Path {
             let path = Path {
                 id: Some(id.to_hyphenated().to_string()),
                 path,
+                readable_path,
                 get_available,
                 post_available,
                 put_available,
