@@ -294,10 +294,11 @@ pub async fn enter_seed_data_to_auth_roles_cross_paths(db_pool: &DbPool) {
 
     for path in paths {
         let value = format!(
-            " ('{}','{}','{}',{},{},{},{},{},{},{},{},{},{},{},{}) ",
+            " ('{}','{}','{}','{}',{},{},{},{},{},{},{},{},{},{},{},{}) ",
             admin_role.id,
             path.id.unwrap(),
             path.path,
+            path.readable_path,
             path.get_available,
             path.post_available,
             path.put_available,
@@ -326,6 +327,7 @@ pub async fn enter_seed_data_to_auth_roles_cross_paths(db_pool: &DbPool) {
                 auth_role,\
                 path_id,\
                 path,\
+                readable_path,\
                 get_allowed,\
                 post_allowed,\
                 put_allowed,\
