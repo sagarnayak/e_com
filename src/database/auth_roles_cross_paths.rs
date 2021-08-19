@@ -41,105 +41,112 @@ impl AuthRolesCrossPaths {
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let get_allowed: bool = match row.try_get(4) {
+            let readable_path: String = match row.try_get(4) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get readable_path ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let get_allowed: bool = match row.try_get(5) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get get_allowed ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let post_allowed: bool = match row.try_get(5) {
+            let post_allowed: bool = match row.try_get(6) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get post_allowed ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let put_allowed: bool = match row.try_get(6) {
+            let put_allowed: bool = match row.try_get(7) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get put_allowed ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let delete_allowed: bool = match row.try_get(7) {
+            let delete_allowed: bool = match row.try_get(8) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get delete_allowed ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_delegate_get: bool = match row.try_get(8) {
+            let can_delegate_get: bool = match row.try_get(9) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_get ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_delegate_post: bool = match row.try_get(9) {
+            let can_delegate_post: bool = match row.try_get(10) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_post ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_delegate_put: bool = match row.try_get(10) {
+            let can_delegate_put: bool = match row.try_get(11) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_put ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_delegate_delete: bool = match row.try_get(11) {
+            let can_delegate_delete: bool = match row.try_get(12) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_delete ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_access_for_children_get: bool = match row.try_get(12) {
+            let can_access_for_children_get: bool = match row.try_get(13) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_get ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_access_for_children_post: bool = match row.try_get(13) {
+            let can_access_for_children_post: bool = match row.try_get(14) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_post ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_access_for_children_put: bool = match row.try_get(14) {
+            let can_access_for_children_put: bool = match row.try_get(15) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_put ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_access_for_children_delete: bool = match row.try_get(15) {
+            let can_access_for_children_delete: bool = match row.try_get(16) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_delete ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let where_replacement: Option<String> = match row.try_get(16) {
+            let where_replacement: Option<String> = match row.try_get(17) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let created: DateTime<Utc> = match row.try_get(17) {
+            let created: DateTime<Utc> = match row.try_get(18) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get created ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let modified: Option<DateTime<Utc>> = match row.try_get(18) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(19) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
@@ -152,6 +159,7 @@ impl AuthRolesCrossPaths {
                 auth_role: Some(auth_role.to_hyphenated().to_string()),
                 path_id: Some(path_id.to_hyphenated().to_string()),
                 path,
+                readable_path,
                 get_allowed,
                 post_allowed,
                 put_allowed,

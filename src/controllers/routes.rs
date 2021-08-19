@@ -14,159 +14,64 @@ pub fn get_paths() -> Vec<Path> {
     let mut paths: Vec<Path> = vec![];
 
     paths.push(
-        Path {
-            id: None,
-            path: "^(/)$".to_string(),
-            readable_path: "/".to_owned(),
-            get_available: true,
-            post_available: false,
-            put_available: false,
-            delete_available: false,
-            can_delegate_get: true,
-            can_delegate_post: false,
-            can_delegate_put: false,
-            can_delegate_delete: false,
-            force_delegate_get: true,
-            force_delegate_post: false,
-            force_delegate_put: false,
-            force_delegate_delete: false,
-            can_access_for_children_get: false,
-            can_access_for_children_post: false,
-            can_access_for_children_put: false,
-            can_access_for_children_delete: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/)$",
+            "/",
+        )
+            .get_available()
+            .can_delegate_get()
+            .force_delegate_get()
     );
 
     paths.push(
-        Path {
-            id: None,
-            path: "^(/authenticate)$".to_string(),
-            readable_path: "/authenticate".to_owned(),
-            get_available: false,
-            post_available: true,
-            put_available: false,
-            delete_available: false,
-            can_delegate_get: false,
-            can_delegate_post: true,
-            can_delegate_put: false,
-            can_delegate_delete: false,
-            force_delegate_get: false,
-            force_delegate_post: true,
-            force_delegate_put: false,
-            force_delegate_delete: false,
-            can_access_for_children_get: false,
-            can_access_for_children_post: false,
-            can_access_for_children_put: false,
-            can_access_for_children_delete: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/authenticate)$",
+            "/authenticate",
+        )
+            .post_available()
+            .can_delegate_post()
+            .force_delegate_post()
     );
 
     paths.push(
-        Path {
-            id: None,
-            path: "^(/paths)$".to_string(),
-            readable_path: "/paths".to_owned(),
-            get_available: true,
-            post_available: false,
-            put_available: false,
-            delete_available: false,
-            can_delegate_get: true,
-            can_delegate_post: false,
-            can_delegate_put: false,
-            can_delegate_delete: false,
-            force_delegate_get: true,
-            force_delegate_post: false,
-            force_delegate_put: false,
-            force_delegate_delete: false,
-            can_access_for_children_get: false,
-            can_access_for_children_post: false,
-            can_access_for_children_put: false,
-            can_access_for_children_delete: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/paths)$",
+            "/paths",
+        )
+            .get_available()
+            .can_delegate_get()
+            .force_delegate_get()
     );
 
     paths.push(
-        Path {
-            id: None,
-            path: "^(/role)$".to_string(),
-            readable_path: "/role".to_string(),
-            get_available: true,
-            post_available: false,
-            put_available: false,
-            delete_available: false,
-            can_delegate_get: true,
-            can_delegate_post: false,
-            can_delegate_put: false,
-            can_delegate_delete: false,
-            force_delegate_get: true,
-            force_delegate_post: false,
-            force_delegate_put: false,
-            force_delegate_delete: false,
-            can_access_for_children_get: false,
-            can_access_for_children_post: false,
-            can_access_for_children_put: false,
-            can_access_for_children_delete: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/role)$",
+            "/role",
+        )
+            .get_available()
+            .can_delegate_get()
+            .force_delegate_get()
     );
 
     paths.push(
-        Path {
-            id: None,
-            path: "^(/roles)/?.*$".to_string(),
-            readable_path: "/roles".to_string(),
-            get_available: true,
-            post_available: false,
-            put_available: false,
-            delete_available: false,
-            can_delegate_get: true,
-            can_delegate_post: false,
-            can_delegate_put: false,
-            can_delegate_delete: false,
-            force_delegate_get: true,
-            force_delegate_post: false,
-            force_delegate_put: false,
-            force_delegate_delete: false,
-            can_access_for_children_get: false,
-            can_access_for_children_post: false,
-            can_access_for_children_put: false,
-            can_access_for_children_delete: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/roles)/?.*$",
+            "/roles",
+        )
+            .get_available()
+            .can_delegate_get()
+            .force_delegate_get()
     );
 
     paths.push(
-        Path {
-            id: None,
-            path: "^(/me)$".to_string(),
-            readable_path: "/me".to_string(),
-            get_available: true,
-            post_available: false,
-            put_available: false,
-            delete_available: false,
-            can_delegate_get: true,
-            can_delegate_post: false,
-            can_delegate_put: false,
-            can_delegate_delete: false,
-            force_delegate_get: true,
-            force_delegate_post: false,
-            force_delegate_put: false,
-            force_delegate_delete: false,
-            can_access_for_children_get: false,
-            can_access_for_children_post: false,
-            can_access_for_children_put: false,
-            can_access_for_children_delete: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/me)$",
+            "/me",
+        )
+            .get_available()
+            .can_delegate_get()
+            .force_delegate_get()
+            .force_delegate_get()
     );
 
     paths

@@ -222,8 +222,8 @@ impl MigrationContracts for MigrationStruct {
                     id uuid default gen_random_uuid(),\
                     auth_role uuid NOT NULL,\
                     path_id uuid NOT NULL,\
-                    readable_path uuid NOT NULL,\
                     path varchar(200) NOT NULL,\
+                    readable_path varchar(200) NOT NULL,\
                     get_allowed bool NOT NULL default false,\
                     post_allowed bool NOT NULL default false,\
                     put_allowed bool NOT NULL default false,\
