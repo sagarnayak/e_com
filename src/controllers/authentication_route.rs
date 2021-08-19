@@ -36,7 +36,7 @@ pub async fn authenticate(
     };
 
     let user: User = match User::find_user_with_email(
-        authentication_request.user_email.clone(),
+        &authentication_request.user_email,
         db_pool,
     ).await {
         Ok(positive) => {

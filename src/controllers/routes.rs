@@ -1,5 +1,6 @@
 use rocket::Route;
 
+use crate::controllers::auth_roles_cross_paths_route::add_auth_roles_cross_paths;
 use crate::controllers::auth_roles_cross_paths_route::get_available_paths;
 use crate::controllers::authentication_route::authenticate;
 use crate::controllers::index::index;
@@ -42,6 +43,8 @@ pub fn get_paths() -> Vec<Path> {
             .get_available()
             .can_delegate_get()
             .force_delegate_get()
+            .post_available()
+            .can_delegate_post()
     );
 
     paths.push(
@@ -100,5 +103,6 @@ pub fn get_routes() -> Vec<Route> {
         me,
         index,
         renew_token,
+        add_auth_roles_cross_paths,
     ]
 }

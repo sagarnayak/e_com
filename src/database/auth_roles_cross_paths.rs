@@ -6,6 +6,8 @@ use crate::contracts::auth_roles_cross_paths_contracts::AuthRolesCrossPathsContr
 use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
+use crate::model::path::Path;
+use crate::model::role::Role;
 use crate::model::status_message::StatusMessage;
 
 impl AuthRolesCrossPaths {
@@ -216,6 +218,73 @@ impl AuthRolesCrossPathsContracts for AuthRolesCrossPaths {
         if results_to_send.len() != 0 {
             Ok(
                 results_to_send
+            )
+        } else {
+            StatusMessage::bad_request_400_in_result(
+                "Failed to get auth_roles_cross_paths".to_owned()
+            )
+        }
+    }
+
+    async fn add_auth_roles_cross_paths(role_id: &Uuid, path: &Path, db_pool: &DbPool) -> Result<bool, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let id_to_insert = path.clone().id.unwrap();
+
+        let statement_to_send = &format!(
+            "INSERT INTO auth_roles_cross_paths (\
+                auth_role,\
+                path_id,\
+                path,\
+                readable_path,\
+                get_allowed,\
+                post_allowed,\
+                put_allowed,\
+                delete_allowed,\
+                can_delegate_get,\
+                can_delegate_post,\
+                can_delegate_put,\
+                can_delegate_delete,\
+                can_access_for_children_get,\
+                can_access_for_children_post,\
+                can_access_for_children_put,\
+                can_access_for_children_delete\
+                ) VALUES (\
+                '{}','{}','{}','{}',{},{},{},{},{},{},{},{},{},{},{},{}\
+                )",
+            &role_id.to_hyphenated().to_string(),
+            &id_to_insert,
+            &path.path,
+            &path.readable_path,
+            &path.get_available,
+            &path.post_available,
+            &path.put_available,
+            &path.delete_available,
+            &path.can_delegate_get,
+            &path.can_delegate_post,
+            &path.can_delegate_put,
+            &path.can_delegate_delete,
+            &path.can_access_for_children_get,
+            &path.can_access_for_children_post,
+            &path.can_access_for_children_put,
+            &path.can_access_for_children_delete,
+        );
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.execute(&statement, &[]).await {
+            Ok(result_positive) => result_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        if results != 0 {
+            Ok(
+                true
             )
         } else {
             StatusMessage::bad_request_400_in_result(

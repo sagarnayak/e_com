@@ -256,10 +256,12 @@ impl RoleContracts for Role {
         }
     }
 
-    async fn add_role(user_role: &Role, role: &RoleRequest, db_pool: &DbPool) -> Result<u64, StatusMessage> {
+    async fn add_role(user_role: &Role, role: &RoleRequest, db_pool: &DbPool) -> Result<Uuid, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
-        let mut columns_statement = "INSERT INTO roles (derived_from,name,can_delegate,enabled".to_owned();
+        let uuid_for_role = Uuid::new_v4();
+
+        let mut columns_statement = "INSERT INTO roles (id,derived_from,name,can_delegate,enabled".to_owned();
 
         if role.valid_from.is_some() {
             columns_statement.push_str(",valid_from");
@@ -273,7 +275,12 @@ impl RoleContracts for Role {
         columns_statement.push_str(") ");
 
         let mut values_statement = format!(
-            "VALUES ('{}','{}',{},{}", &user_role.id, &role.name, &role.can_delegate, &role.enabled
+            "VALUES ('{}','{}','{}',{},{}",
+            &uuid_for_role.to_hyphenated().to_string(),
+            &user_role.id,
+            &role.name,
+            &role.can_delegate,
+            &role.enabled
         );
 
         if role.valid_from.is_some() {
@@ -309,7 +316,7 @@ impl RoleContracts for Role {
 
         if results != 0 {
             Ok(
-                results
+                uuid_for_role
             )
         } else {
             StatusMessage::bad_request_400_in_result(
@@ -390,5 +397,46 @@ impl RoleContracts for Role {
                 total_items: total_count,
             }
         )
+    }
+
+    async fn if_role_created_by(
+        role_id_to_check: &String,
+        parent_role_id: &String,
+        db_pool: &State<DbPool>,
+    )
+        -> Result<bool, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement_to_send = &format!(
+            "SELECT * FROM roles WHERE id = '{}' AND derived_from = '{}'",
+            &role_id_to_check,
+            &parent_role_id
+        );
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.query(&statement, &[]).await {
+            Ok(result_positive) => result_positive,
+            Err(error) => {
+                return StatusMessage::bad_request_400_in_result(
+                    get_postgres_error_string(error.as_db_error())
+                );
+            }
+        };
+
+        if results.len() != 0 {
+            Ok(
+                true
+            )
+        } else {
+            Ok(
+                false
+            )
+        }
     }
 }

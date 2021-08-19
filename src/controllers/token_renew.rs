@@ -99,7 +99,7 @@ pub async fn renew_token(
     }
 
     let user: User = match User::find_user_with_id(
-        authentication_authorization_guard.claims.owner.to_owned(),
+        &authentication_authorization_guard.claims.owner,
         &db_pool,
     ).await {
         Ok(positive) => {

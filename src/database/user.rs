@@ -176,7 +176,7 @@ impl User {
 
 #[async_trait]
 impl UserContracts for User {
-    async fn find_user_with_email(email_id: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
+    async fn find_user_with_email(email_id: &String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
         let statement_to_send = &format!("SELECT * FROM users WHERE email_id = '{}'", email_id);
@@ -213,7 +213,7 @@ impl UserContracts for User {
             )
         }
     }
-    async fn find_user_with_id(id: String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
+    async fn find_user_with_id(id: &String, db_pool: &State<DbPool>) -> Result<User, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
         let statement_to_send = &format!("SELECT * FROM users WHERE id = '{}'", id);

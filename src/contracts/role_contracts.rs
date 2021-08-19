@@ -7,6 +7,7 @@ use crate::model::role::Role;
 use crate::model::role_request::RoleRequest;
 use crate::model::status_message::StatusMessage;
 use crate::model::user::User;
+use uuid::Uuid;
 
 #[async_trait]
 pub trait RoleContracts {
@@ -15,11 +16,17 @@ pub trait RoleContracts {
                                    -> Result<Role, StatusMessage>;
     async fn find_role_for_admin(db_pool: &DbPool) -> Result<Role, StatusMessage>;
     async fn add_role(user_role: &Role, role: &RoleRequest, db_pool: &DbPool)
-                      -> Result<u64, StatusMessage>;
+                      -> Result<Uuid, StatusMessage>;
     async fn find_roles_created_by_role(
         role: &Role,
         page_number: &u32,
         page_size: &u32,
         db_pool: &State<DbPool>,
     ) -> Result<PageResponse<Role>, StatusMessage>;
+    async fn if_role_created_by(
+        role_id_to_check: &String,
+        parent_role_id: &String,
+        db_pool: &State<DbPool>,
+    )
+        -> Result<bool, StatusMessage>;
 }
