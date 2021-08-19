@@ -3,6 +3,7 @@ use rocket::response::status;
 use rocket::serde::json::Json;
 use rocket::State;
 
+use crate::config_controller::ConfigData;
 use crate::contracts::refresh_token_contracts::RefreshTokenContracts;
 use crate::contracts::user_contracts::UserContracts;
 use crate::database::db_pool::DbPool;
@@ -18,6 +19,7 @@ use crate::model::user::User;
 pub async fn renew_token(
     authentication_authorization_guard: Result<AuthenticationAuthorizationGuard, StatusMessage>,
     db_pool: &State<DbPool>,
+    config_data: &State<ConfigData>,
     token_renew_request: Option<Json<TokenRenewRequest>>,
 ) -> status::Custom<Result<Json<AuthenticationResponse>, Json<StatusMessage>>> {
     let authentication_authorization_guard =
@@ -39,7 +41,7 @@ pub async fn renew_token(
         }
     };
 
-    let refresh_validate_results = validate_refresh_jwt(&token_renew_request.refresh_token);
+    let refresh_validate_results = validate_refresh_jwt(&token_renew_request.refresh_token, config_data.inner().clone());
 
     if !refresh_validate_results.0 {
         return StatusMessage::bad_request_400_with_status_code_in_result(
@@ -53,7 +55,7 @@ pub async fn renew_token(
         );
     }
 
-    let refresh_token_claims = match extract_refresh_jwt(&token_renew_request.refresh_token) {
+    let refresh_token_claims = match extract_refresh_jwt(&token_renew_request.refresh_token, config_data.inner().clone()) {
         Ok(positive) => {
             positive
         }
@@ -116,6 +118,7 @@ pub async fn renew_token(
         &user,
         authentication_authorization_guard.auth_expanded,
         &db_pool,
+        config_data.inner().clone(),
     ).await {
         Ok(positive) => positive,
         Err(error) => {

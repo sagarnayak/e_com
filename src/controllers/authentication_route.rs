@@ -4,6 +4,7 @@ use rocket::response::status;
 use rocket::serde::json::Json;
 use rocket::State;
 
+use crate::config_controller::ConfigData;
 use crate::contracts::auth_roles_cross_paths_contracts::AuthRolesCrossPathsContracts;
 use crate::contracts::blocked_for_platform_authorization_contracts::BlockedForPlatformAuthorizationContracts;
 use crate::contracts::role_contracts::RoleContracts;
@@ -24,6 +25,7 @@ use crate::model::user::User;
 pub async fn authenticate(
     authentication_request: Option<Json<AuthenticationRequest>>,
     db_pool: &State<DbPool>,
+    config_data: &State<ConfigData>,
 )
     -> status::Custom<Result<Json<AuthenticationResponse>, Json<StatusMessage>>> {
     let authentication_request = match authentication_request {
@@ -127,6 +129,7 @@ pub async fn authenticate(
         &user,
         auth_roles_cross_paths,
         &db_pool,
+        config_data.inner().clone(),
     ).await {
         Ok(positive) => status::Custom(
             Status::Ok,

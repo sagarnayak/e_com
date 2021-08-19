@@ -267,6 +267,9 @@ impl RoleContracts for Role {
         if role.valid_to.is_some() {
             columns_statement.push_str(",valid_to");
         }
+        if role.can_access_for_children.is_some() {
+            columns_statement.push_str(",can_access_for_children");
+        }
         columns_statement.push_str(") ");
 
         let mut values_statement = format!(
@@ -278,6 +281,9 @@ impl RoleContracts for Role {
         }
         if role.valid_to.is_some() {
             values_statement.push_str(&format!(",'{}'", role.valid_to.unwrap()))
+        }
+        if role.can_access_for_children.is_some() {
+            values_statement.push_str(&format!(",{}", role.can_access_for_children.unwrap()))
         }
         values_statement.push_str(")");
 

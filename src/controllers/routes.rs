@@ -52,6 +52,8 @@ pub fn get_paths() -> Vec<Path> {
             .get_available()
             .can_delegate_get()
             .force_delegate_get()
+            .post_available()
+            .can_delegate_post()
     );
 
     paths.push(

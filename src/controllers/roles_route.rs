@@ -143,6 +143,7 @@ pub async fn create_role(
 pub async fn find_roles_created_by_me(
     authentication_authorization_guard: Result<AuthenticationAuthorizationGuard, StatusMessage>,
     db_pool: &State<DbPool>,
+    config_data: &State<ConfigData>,
     page: Option<u32>,
     size: Option<u32>,
 )
@@ -183,8 +184,6 @@ pub async fn find_roles_created_by_me(
         }
     };
 
-    let conf_data = ConfigData::new();
-
     let page_number = match page {
         Some(positive) => {
             positive
@@ -196,14 +195,14 @@ pub async fn find_roles_created_by_me(
 
     let page_size = match size {
         Some(positive) => {
-            if positive <= conf_data.paging_conf.max_page_size {
+            if positive <= config_data.paging_conf.max_page_size {
                 positive
             } else {
-                conf_data.paging_conf.max_page_size
+                config_data.paging_conf.max_page_size
             }
         }
         None => {
-            conf_data.paging_conf.default_page_size
+            config_data.paging_conf.default_page_size
         }
     };
 
@@ -235,6 +234,7 @@ pub async fn find_roles_created_by_me(
 pub async fn find_roles_created_by_specific_user(
     authentication_authorization_guard: Result<AuthenticationAuthorizationGuard, StatusMessage>,
     db_pool: &State<DbPool>,
+    config_data: &State<ConfigData>,
     role_creator_role_id: Option<String>,
     page: Option<u32>,
     size: Option<u32>,
@@ -322,8 +322,6 @@ pub async fn find_roles_created_by_specific_user(
         );
     }
 
-    let conf_data = ConfigData::new();
-
     let page_number = match page {
         Some(positive) => {
             positive
@@ -335,14 +333,14 @@ pub async fn find_roles_created_by_specific_user(
 
     let page_size = match size {
         Some(positive) => {
-            if positive <= conf_data.paging_conf.max_page_size {
+            if positive <= config_data.paging_conf.max_page_size {
                 positive
             } else {
-                conf_data.paging_conf.max_page_size
+                config_data.paging_conf.max_page_size
             }
         }
         None => {
-            conf_data.paging_conf.default_page_size
+            config_data.paging_conf.default_page_size
         }
     };
 

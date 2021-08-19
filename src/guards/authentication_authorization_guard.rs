@@ -39,9 +39,9 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
     type Error = StatusMessage;
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, StatusMessage> {
-        fn is_valid(key: &str) -> (bool, Option<bool>, String) {
+        fn is_valid(key: &str, config_data: ConfigData) -> (bool, Option<bool>, String) {
             let bearer_replaced = strip_bearer_string(&key);
-            let validated_result = validate_jwt(&bearer_replaced);
+            let validated_result = validate_jwt(&bearer_replaced, config_data.clone());
             (validated_result.0, Some(validated_result.1), bearer_replaced.to_owned())
         }
 
@@ -292,9 +292,26 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
 
         async fn got_jwt_key<'r>(jwt_key: &str, req: &'r Request<'_>)
                                  -> Outcome<AuthenticationAuthorizationGuard, StatusMessage> {
-            let validated_result = is_valid(jwt_key);
+            let config_data = match req.rocket().state::<ConfigData>() {
+                Some(positive) => { positive }
+                None => {
+                    println!("can not get donfig data in got_jwt_key()");
+                    return Outcome::Failure(
+                        (
+                            Status::BadRequest,
+                            StatusMessage {
+                                code: Status::BadRequest.code,
+                                status: Status::BadRequest,
+                                message: "Failed to get config_data data".to_owned(),
+                                sys_message: None,
+                            }
+                        )
+                    );
+                }
+            };
+            let validated_result = is_valid(jwt_key, config_data.clone());
             if validated_result.0 {
-                match extract_jwt(&validated_result.2) {
+                match extract_jwt(&validated_result.2, config_data.clone()) {
                     Ok(claims) => {
                         let db_pool = match req.rocket().state::<DbPool>() {
                             Some(positive) => { positive }
@@ -452,7 +469,7 @@ impl<'r> FromRequest<'r> for AuthenticationAuthorizationGuard {
                             let path = &req.uri().to_string();
                             if paths_to_skip_for_validity_test.contains(path) {
                                 let data_in_jwt = &validated_result.2.split(".").collect::<Vec<&str>>()[1];
-                               let claims =  match decode(data_in_jwt) {
+                                let claims = match decode(data_in_jwt) {
                                     Ok(positive_inner_inner) => {
                                         let claims: Claims =
                                             serde_json::from_str(

@@ -21,6 +21,7 @@ pub async fn create_jwt(
     user: &User,
     auth_roles_cross_paths: Vec<AuthRolesCrossPaths>,
     db_pool: &DbPool,
+    config_data: ConfigData,
 ) -> Result<(String, String), StatusMessage> {
     let mut minified_auth_roles_cross_paths: String = "".to_owned();
     for auth in auth_roles_cross_paths {
@@ -61,7 +62,7 @@ pub async fn create_jwt(
     let token = match encode(
         &header,
         &my_claims,
-        &EncodingKey::from_secret(ConfigData::new().jwt.secret.as_bytes()),
+        &EncodingKey::from_secret(config_data.jwt.secret.as_bytes()),
     ) {
         Ok(t) => t,
         Err(_) => return StatusMessage::bad_request_400_in_result(FAILED_TO_CREATE_JWT.to_string()),
@@ -76,7 +77,7 @@ pub async fn create_jwt(
     let refresh_token = match encode(
         &header,
         &refresh_claims,
-        &EncodingKey::from_secret(ConfigData::new().jwt.secret.as_bytes()),
+        &EncodingKey::from_secret(config_data.jwt.secret.as_bytes()),
     ) {
         Ok(t) => t,
         Err(_) => return StatusMessage::bad_request_400_in_result(FAILED_TO_CREATE_JWT.to_string()),
@@ -85,14 +86,14 @@ pub async fn create_jwt(
     Ok((token, refresh_token))
 }
 
-pub fn validate_jwt(jwt: &str) -> (bool, bool) {
+pub fn validate_jwt(jwt: &str, config_data: ConfigData) -> (bool, bool) {
     let mut is_valid = false;
     let mut is_expired = false;
 
     let _ = match decode::<Claims>(
         &jwt,
         &DecodingKey::from_secret(
-            ConfigData::new().jwt.secret.as_bytes()
+            config_data.jwt.secret.as_bytes()
         ),
         &Validation::new(Algorithm::HS512),
     ) {
@@ -114,14 +115,14 @@ pub fn validate_jwt(jwt: &str) -> (bool, bool) {
     return (is_valid, is_expired);
 }
 
-pub fn validate_refresh_jwt(jwt: &str) -> (bool, bool) {
+pub fn validate_refresh_jwt(jwt: &str, config_data: ConfigData) -> (bool, bool) {
     let mut is_valid = false;
     let mut is_expired = false;
 
     let _ = match decode::<RefreshClaims>(
         &jwt,
         &DecodingKey::from_secret(
-            ConfigData::new().jwt.secret.as_bytes()
+            config_data.jwt.secret.as_bytes()
         ),
         &Validation::new(Algorithm::HS512),
     ) {
@@ -143,11 +144,11 @@ pub fn validate_refresh_jwt(jwt: &str) -> (bool, bool) {
     return (is_valid, is_expired);
 }
 
-pub fn extract_jwt(key_to_decode: &str) -> Result<Claims, StatusMessage> {
+pub fn extract_jwt(key_to_decode: &str, config_data: ConfigData) -> Result<Claims, StatusMessage> {
     let token_data = match decode::<Claims>(
         &key_to_decode,
         &DecodingKey::from_secret(
-            ConfigData::new().jwt.secret.as_bytes()
+            config_data.jwt.secret.as_bytes()
         ),
         &Validation::new(Algorithm::HS512),
     ) {
@@ -160,11 +161,11 @@ pub fn extract_jwt(key_to_decode: &str) -> Result<Claims, StatusMessage> {
     token_data
 }
 
-pub fn extract_refresh_jwt(key_to_decode: &str) -> Result<RefreshClaims, StatusMessage> {
+pub fn extract_refresh_jwt(key_to_decode: &str, config_data: ConfigData) -> Result<RefreshClaims, StatusMessage> {
     let token_data = match decode::<RefreshClaims>(
         &key_to_decode,
         &DecodingKey::from_secret(
-            ConfigData::new().jwt.secret.as_bytes()
+            config_data.jwt.secret.as_bytes()
         ),
         &Validation::new(Algorithm::HS512),
     ) {

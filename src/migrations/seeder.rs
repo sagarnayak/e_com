@@ -172,7 +172,7 @@ pub async fn enter_seed_data_to_roles(db_pool: &DbPool, id: &Uuid) {
                 ) \
                 VALUES (\
                 '{}',\
-                'admin',\
+                'genesis',\
                 true,\
                 true,\
                 true\
@@ -196,7 +196,7 @@ pub async fn enter_seed_data_to_roles(db_pool: &DbPool, id: &Uuid) {
     println!("seed data inserted to roles");
 }
 
-pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid) {
+pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid, config_data: ConfigData) {
     let client = resolve_client(db_pool).await;
 
     println!("trying to insert seed data to users");
@@ -205,8 +205,6 @@ pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid) {
         println!("rejected inserting seed data to users");
         return;
     }
-
-    let config_data = ConfigData::new();
 
     let hashed = hash(config_data.admin_data.admin_password, B_CRYPT_COST);
     let hashed = match hashed {
