@@ -221,7 +221,7 @@ impl RoleContracts for Role {
     async fn find_role_for_admin(db_pool: &DbPool) -> Result<Role, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
-        let statement_to_send = &format!("SELECT * FROM roles WHERE name = 'admin'");
+        let statement_to_send = &format!("SELECT * FROM roles WHERE name = 'genesis'");
 
         let statement = match client
             .prepare_cached(statement_to_send)
