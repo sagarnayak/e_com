@@ -114,6 +114,35 @@ pub fn validate_jwt(jwt: &str) -> (bool, bool) {
     return (is_valid, is_expired);
 }
 
+pub fn validate_refresh_jwt(jwt: &str) -> (bool, bool) {
+    let mut is_valid = false;
+    let mut is_expired = false;
+
+    let _ = match decode::<RefreshClaims>(
+        &jwt,
+        &DecodingKey::from_secret(
+            ConfigData::new().jwt.secret.as_bytes()
+        ),
+        &Validation::new(Algorithm::HS512),
+    ) {
+        Ok(_) => {
+            is_valid = true;
+        }
+        Err(err) => {
+            match *err.kind() {
+                ErrorKind::InvalidToken => {}
+                ErrorKind::InvalidIssuer => {}
+                ErrorKind::ExpiredSignature => {
+                    is_expired = true;
+                }
+                _ => {}
+            };
+        }
+    };
+
+    return (is_valid, is_expired);
+}
+
 pub fn extract_jwt(key_to_decode: &str) -> Result<Claims, StatusMessage> {
     let token_data = match decode::<Claims>(
         &key_to_decode,
@@ -125,6 +154,23 @@ pub fn extract_jwt(key_to_decode: &str) -> Result<Claims, StatusMessage> {
         Ok(c) => Ok(c.claims),
         Err(_) => {
             StatusMessage::bad_request_400_in_result("Failed to extract data from JWT".to_string())
+        }
+    };
+
+    token_data
+}
+
+pub fn extract_refresh_jwt(key_to_decode: &str) -> Result<RefreshClaims, StatusMessage> {
+    let token_data = match decode::<RefreshClaims>(
+        &key_to_decode,
+        &DecodingKey::from_secret(
+            ConfigData::new().jwt.secret.as_bytes()
+        ),
+        &Validation::new(Algorithm::HS512),
+    ) {
+        Ok(c) => Ok(c.claims),
+        Err(_) => {
+            StatusMessage::bad_request_400_in_result("Failed to extract data from refresh JWT".to_string())
         }
     };
 

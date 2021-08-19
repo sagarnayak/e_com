@@ -56,6 +56,7 @@ impl MigrationContracts for MigrationStruct {
                     "CREATE TABLE IF NOT EXISTS refresh_token_log(\
                     id uuid default gen_random_uuid(),\
                     token_hash varchar(100) NOT NULL,\
+                    use_reason varchar(200) NOT NULL,\
                     created timestamptz default CURRENT_TIMESTAMP,\
                     modified timestamptz,\
                     PRIMARY KEY (id) )"

@@ -55,6 +55,7 @@ pub async fn authenticate(
     ) {
         Ok(positive) => {
             if !positive {
+                println!("4");
                 return StatusMessage::unauthorized_401_with_status_code_in_result(
                     AUTHENTICATION_FAILURE.to_string(),
                     None,
@@ -63,6 +64,7 @@ pub async fn authenticate(
             }
         }
         Err(_) => {
+            println!("5");
             return StatusMessage::unauthorized_401_with_status_code_in_result(
                 AUTHENTICATION_FAILURE.to_string(),
                 None,

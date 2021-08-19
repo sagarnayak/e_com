@@ -8,6 +8,7 @@ use crate::controllers::roles_route::create_role;
 use crate::controllers::roles_route::find_roles_created_by_me;
 use crate::controllers::roles_route::find_roles_created_by_specific_user;
 use crate::controllers::roles_route::get_my_role;
+use crate::controllers::token_renew::renew_token;
 use crate::model::path::Path;
 
 pub fn get_paths() -> Vec<Path> {
@@ -71,7 +72,16 @@ pub fn get_paths() -> Vec<Path> {
             .get_available()
             .can_delegate_get()
             .force_delegate_get()
-            .force_delegate_get()
+    );
+
+    paths.push(
+        Path::new(
+            "^(/renewToken)$",
+            "/renewToken",
+        )
+            .post_available()
+            .can_delegate_post()
+            .force_delegate_post()
     );
 
     paths
@@ -87,5 +97,6 @@ pub fn get_routes() -> Vec<Route> {
         find_roles_created_by_specific_user,
         me,
         index,
+        renew_token,
     ]
 }
