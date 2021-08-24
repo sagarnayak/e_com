@@ -7,7 +7,9 @@ use crate::model::mobile_number::MobileNumber;
 #[serde(rename_all = "camelCase")]
 pub struct User {
     pub id: String,
+    #[serde(skip_serializing, skip_deserializing)]
     pub role: String,
+    #[serde(skip_serializing, skip_deserializing)]
     pub password: String,
     pub first_name: String,
     pub last_name: Option<String>,

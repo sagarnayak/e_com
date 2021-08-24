@@ -6,6 +6,8 @@ use crate::contracts::auth_roles_cross_paths_contracts::AuthRolesCrossPathsContr
 use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 use crate::model::auth_roles_cross_paths::AuthRolesCrossPaths;
+use crate::model::path::Path;
+use crate::model::role::Role;
 use crate::model::status_message::StatusMessage;
 
 impl AuthRolesCrossPaths {
@@ -41,77 +43,112 @@ impl AuthRolesCrossPaths {
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let get_allowed: bool = match row.try_get(4) {
+            let readable_path: String = match row.try_get(4) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get readable_path ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let get_allowed: bool = match row.try_get(5) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get get_allowed ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let post_allowed: bool = match row.try_get(5) {
+            let post_allowed: bool = match row.try_get(6) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get post_allowed ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let put_allowed: bool = match row.try_get(6) {
+            let put_allowed: bool = match row.try_get(7) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get put_allowed ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let delete_allowed: bool = match row.try_get(7) {
+            let delete_allowed: bool = match row.try_get(8) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get delete_allowed ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_delegate_get: bool = match row.try_get(8) {
+            let can_delegate_get: bool = match row.try_get(9) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_get ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_delegate_post: bool = match row.try_get(9) {
+            let can_delegate_post: bool = match row.try_get(10) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_post ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_delegate_put: bool = match row.try_get(10) {
+            let can_delegate_put: bool = match row.try_get(11) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_put ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let can_delegate_delete: bool = match row.try_get(11) {
+            let can_delegate_delete: bool = match row.try_get(12) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get can_delegate_delete ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let where_replacement: Option<String> = match row.try_get(12) {
+            let can_access_for_children_get: bool = match row.try_get(13) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_get ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let can_access_for_children_post: bool = match row.try_get(14) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_post ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let can_access_for_children_put: bool = match row.try_get(15) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_put ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let can_access_for_children_delete: bool = match row.try_get(16) {
+                Ok(positive) => match positive {
+                    Some(positive_inner) => positive_inner,
+                    None => return StatusMessage::bad_request_400_in_result("failed to get can_access_for_children_delete ".to_string()),
+                },
+                Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+            };
+            let where_replacement: Option<String> = match row.try_get(17) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let created: DateTime<Utc> = match row.try_get(13) {
+            let created: DateTime<Utc> = match row.try_get(18) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => return StatusMessage::bad_request_400_in_result("failed to get created ".to_string()),
                 },
                 Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
             };
-            let modified: Option<DateTime<Utc>> = match row.try_get(14) {
+            let modified: Option<DateTime<Utc>> = match row.try_get(19) {
                 Ok(positive) => match positive {
                     Some(positive_inner) => positive_inner,
                     None => None,
@@ -124,6 +161,7 @@ impl AuthRolesCrossPaths {
                 auth_role: Some(auth_role.to_hyphenated().to_string()),
                 path_id: Some(path_id.to_hyphenated().to_string()),
                 path,
+                readable_path,
                 get_allowed,
                 post_allowed,
                 put_allowed,
@@ -132,6 +170,10 @@ impl AuthRolesCrossPaths {
                 can_delegate_post,
                 can_delegate_put,
                 can_delegate_delete,
+                can_access_for_children_get,
+                can_access_for_children_post,
+                can_access_for_children_put,
+                can_access_for_children_delete,
                 where_replacement,
                 created: Some(created),
                 modified,
@@ -176,6 +218,73 @@ impl AuthRolesCrossPathsContracts for AuthRolesCrossPaths {
         if results_to_send.len() != 0 {
             Ok(
                 results_to_send
+            )
+        } else {
+            StatusMessage::bad_request_400_in_result(
+                "Failed to get auth_roles_cross_paths".to_owned()
+            )
+        }
+    }
+
+    async fn add_auth_roles_cross_paths(role_id: &Uuid, path: &Path, db_pool: &DbPool) -> Result<bool, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let id_to_insert = path.clone().id.unwrap();
+
+        let statement_to_send = &format!(
+            "INSERT INTO auth_roles_cross_paths (\
+                auth_role,\
+                path_id,\
+                path,\
+                readable_path,\
+                get_allowed,\
+                post_allowed,\
+                put_allowed,\
+                delete_allowed,\
+                can_delegate_get,\
+                can_delegate_post,\
+                can_delegate_put,\
+                can_delegate_delete,\
+                can_access_for_children_get,\
+                can_access_for_children_post,\
+                can_access_for_children_put,\
+                can_access_for_children_delete\
+                ) VALUES (\
+                '{}','{}','{}','{}',{},{},{},{},{},{},{},{},{},{},{},{}\
+                )",
+            &role_id.to_hyphenated().to_string(),
+            &id_to_insert,
+            &path.path,
+            &path.readable_path,
+            &path.get_available,
+            &path.post_available,
+            &path.put_available,
+            &path.delete_available,
+            &path.can_delegate_get,
+            &path.can_delegate_post,
+            &path.can_delegate_put,
+            &path.can_delegate_delete,
+            &path.can_access_for_children_get,
+            &path.can_access_for_children_post,
+            &path.can_access_for_children_put,
+            &path.can_access_for_children_delete,
+        );
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.execute(&statement, &[]).await {
+            Ok(result_positive) => result_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        if results != 0 {
+            Ok(
+                true
             )
         } else {
             StatusMessage::bad_request_400_in_result(

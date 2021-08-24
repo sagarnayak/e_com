@@ -22,7 +22,7 @@ pub async fn me(
         };
 
     let user = match User::find_user_with_id(
-        authentication_authorization_guard.claims.owner.clone(),
+        &authentication_authorization_guard.claims.owner,
         db_pool,
     ).await {
         Ok(positive) => {

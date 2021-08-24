@@ -1,16 +1,6 @@
-use chrono::format::Item::Error;
 use serde::Deserialize;
 
 use crate::core::constants::{
-    ADMIN_EMAIL_DEV,
-    ADMIN_EMAIL_PROD,
-    ADMIN_EMAIL_TEST,
-    ADMIN_NAME_DEV,
-    ADMIN_NAME_PROD,
-    ADMIN_NAME_TEST,
-    ADMIN_PASSWORD_DEV,
-    ADMIN_PASSWORD_PROD,
-    ADMIN_PASSWORD_TEST,
     DATABASE_NAME_DEV,
     DATABASE_NAME_PROD,
     DATABASE_NAME_TEST,
@@ -37,6 +27,9 @@ impl ConfigData {
     fn conf_data_for_env(
         environment: ENV,
         google_api_key: String,
+        admin_name: String,
+        admin_email: String,
+        admin_password: String,
         jwt_key: Option<String>,
     ) -> ConfigData {
         match environment {
@@ -56,9 +49,9 @@ impl ConfigData {
                     },
                 },
                 admin_data: AdminData {
-                    admin_name: ADMIN_NAME_DEV.to_string(),
-                    admin_email: ADMIN_EMAIL_DEV.to_string(),
-                    admin_password: ADMIN_PASSWORD_DEV.to_string(),
+                    admin_name,
+                    admin_email,
+                    admin_password,
                 },
                 paging_conf: PagingConf {
                     default_page_size: DEFAULT_PAGE_SIZE,
@@ -78,13 +71,13 @@ impl ConfigData {
                     secret: if jwt_key.is_some() {
                         jwt_key.unwrap()
                     } else {
-                        JWT_SECRET_DEV.to_string()
+                        JWT_SECRET_TEST.to_string()
                     },
                 },
                 admin_data: AdminData {
-                    admin_name: ADMIN_NAME_TEST.to_string(),
-                    admin_email: ADMIN_EMAIL_TEST.to_string(),
-                    admin_password: ADMIN_PASSWORD_TEST.to_string(),
+                    admin_name,
+                    admin_email,
+                    admin_password,
                 },
                 paging_conf: PagingConf {
                     default_page_size: DEFAULT_PAGE_SIZE,
@@ -104,13 +97,13 @@ impl ConfigData {
                     secret: if jwt_key.is_some() {
                         jwt_key.unwrap()
                     } else {
-                        JWT_SECRET_DEV.to_string()
+                        JWT_SECRET_PROD.to_string()
                     },
                 },
                 admin_data: AdminData {
-                    admin_name: ADMIN_NAME_PROD.to_string(),
-                    admin_email: ADMIN_EMAIL_PROD.to_string(),
-                    admin_password: ADMIN_PASSWORD_PROD.to_string(),
+                    admin_name,
+                    admin_email,
+                    admin_password,
                 },
                 paging_conf: PagingConf {
                     default_page_size: DEFAULT_PAGE_SIZE,
@@ -177,6 +170,33 @@ impl ConfigData {
                 panic!();
             }
         };
+        let admin_name = match std::env::var("ADMIN_NAME") {
+            Ok(positive) => {
+                positive
+            }
+            Err(_) => {
+                println!("we need admin name to proceed.");
+                panic!();
+            }
+        };
+        let admin_email = match std::env::var("ADMIN_EMAIL") {
+            Ok(positive) => {
+                positive
+            }
+            Err(_) => {
+                println!("we need admin email to proceed.");
+                panic!();
+            }
+        };
+        let admin_password = match std::env::var("ADMIN_PASSWORD") {
+            Ok(positive) => {
+                positive
+            }
+            Err(_) => {
+                println!("we need admin password to proceed.");
+                panic!();
+            }
+        };
         let jwt_key: Option<String> = match std::env::var("JWT_KEY") {
             Ok(positive) => {
                 Some(positive)
@@ -191,21 +211,33 @@ impl ConfigData {
             "dev" => ConfigData::conf_data_for_env(
                 ENV::Development,
                 google_api_key,
+                admin_name,
+                admin_email,
+                admin_password,
                 jwt_key,
             ),
             "prod" => ConfigData::conf_data_for_env(
                 ENV::Production,
                 google_api_key,
+                admin_name,
+                admin_email,
+                admin_password,
                 jwt_key,
             ),
             "test" => ConfigData::conf_data_for_env(
                 ENV::Testing,
                 google_api_key,
+                admin_name,
+                admin_email,
+                admin_password,
                 jwt_key,
             ),
             _ => ConfigData::conf_data_for_env(
                 ENV::Development,
                 google_api_key,
+                admin_name,
+                admin_email,
+                admin_password,
                 jwt_key,
             ),
         };

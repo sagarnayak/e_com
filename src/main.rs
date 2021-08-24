@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate rocket;
 
+use crate::config_controller::ConfigData;
 use crate::core::rocket_master::rocket;
 use crate::database::database_master::may_execute_migrations;
 
@@ -18,6 +19,7 @@ mod guards;
 
 #[launch]
 async fn init_main() -> _ {
-    may_execute_migrations().await;
-    rocket()
+    let config_data = ConfigData::new();
+    may_execute_migrations(config_data.clone()).await;
+    rocket(config_data.clone())
 }

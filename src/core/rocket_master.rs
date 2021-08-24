@@ -7,11 +7,11 @@ use crate::controllers::routes;
 use crate::core::fairings::CounterFairing;
 use crate::database::database_master;
 
-pub fn rocket() -> Rocket<Build> {
+pub fn rocket(config_data: ConfigData) -> Rocket<Build> {
     rocket::build()
         .attach(CounterFairing::default())
         .register("/", catchers![for_404,not_found])
         .mount("/", routes::get_routes())
-        .manage(database_master::get_db_pools())
-        .manage(ConfigData::new())
+        .manage(database_master::get_db_pools(config_data.clone()))
+        .manage(config_data.clone())
 }

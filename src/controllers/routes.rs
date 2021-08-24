@@ -1,5 +1,6 @@
 use rocket::Route;
 
+use crate::controllers::auth_roles_cross_paths_route::add_auth_roles_cross_paths;
 use crate::controllers::auth_roles_cross_paths_route::get_available_paths;
 use crate::controllers::authentication_route::authenticate;
 use crate::controllers::index::index;
@@ -8,87 +9,84 @@ use crate::controllers::roles_route::create_role;
 use crate::controllers::roles_route::find_roles_created_by_me;
 use crate::controllers::roles_route::find_roles_created_by_specific_user;
 use crate::controllers::roles_route::get_my_role;
+use crate::controllers::token_renew::renew_token;
 use crate::model::path::Path;
 
 pub fn get_paths() -> Vec<Path> {
     let mut paths: Vec<Path> = vec![];
 
     paths.push(
-        Path {
-            id: None,
-            path: "/".to_string(),
-            get_available: true,
-            post_available: false,
-            put_available: false,
-            delete_available: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/)$",
+            "/",
+        )
+            .get_available()
+            .can_delegate_get()
+            .force_delegate_get()
     );
 
     paths.push(
-        Path {
-            id: None,
-            path: "/authenticate".to_string(),
-            get_available: false,
-            post_available: true,
-            put_available: false,
-            delete_available: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/authenticate)$",
+            "/authenticate",
+        )
+            .post_available()
+            .can_delegate_post()
+            .force_delegate_post()
     );
 
     paths.push(
-        Path {
-            id: None,
-            path: "/paths".to_string(),
-            get_available: true,
-            post_available: false,
-            put_available: false,
-            delete_available: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/paths)$",
+            "/paths",
+        )
+            .get_available()
+            .can_delegate_get()
+            .force_delegate_get()
+            .post_available()
+            .can_delegate_post()
     );
 
     paths.push(
-        Path {
-            id: None,
-            path: "/role".to_string(),
-            get_available: true,
-            post_available: true,
-            put_available: false,
-            delete_available: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/role)$",
+            "/role",
+        )
+            .get_available()
+            .can_delegate_get()
+            .force_delegate_get()
+            .post_available()
+            .can_delegate_post()
     );
 
     paths.push(
-        Path {
-            id: None,
-            path: "/roles".to_string(),
-            get_available: true,
-            post_available: false,
-            put_available: false,
-            delete_available: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/roles)/?.*$",
+            "/roles",
+        )
+            .get_available()
+            .can_delegate_get()
+            .force_delegate_get()
     );
 
     paths.push(
-        Path {
-            id: None,
-            path: "/me".to_string(),
-            get_available: true,
-            post_available: false,
-            put_available: false,
-            delete_available: false,
-            created: None,
-            modified: None,
-        }
+        Path::new(
+            "^(/me)$",
+            "/me",
+        )
+            .get_available()
+            .can_delegate_get()
+            .force_delegate_get()
+    );
+
+    paths.push(
+        Path::new(
+            "^(/renewToken)$",
+            "/renewToken",
+        )
+            .post_available()
+            .can_delegate_post()
+            .force_delegate_post()
     );
 
     paths
@@ -104,5 +102,7 @@ pub fn get_routes() -> Vec<Route> {
         find_roles_created_by_specific_user,
         me,
         index,
+        renew_token,
+        add_auth_roles_cross_paths,
     ]
 }

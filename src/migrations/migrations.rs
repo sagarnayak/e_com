@@ -12,6 +12,75 @@ pub struct MigrationStruct;
 
 #[async_trait]
 impl MigrationContracts for MigrationStruct {
+    async fn may_create_cached_auth_data_table(db_pool: &DbPool) -> Result<String, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement = match client
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS cached_auth_data(\
+                    id uuid default gen_random_uuid(),\
+                    auth_string varchar(1000) NOT NULL,\
+                    exp timestamptz NOT NULL,\
+                    created timestamptz default CURRENT_TIMESTAMP,\
+                    modified timestamptz,\
+                    PRIMARY KEY (id) )"
+                )
+            )
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            ),
+        };
+
+        let results = match client.execute(
+            &statement,
+            &[],
+        ).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            )
+        };
+
+        Ok(format!("done :: {}", results))
+    }
+
+    async fn may_create_refresh_token_logs_table(db_pool: &DbPool) -> Result<String, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement = match client
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS refresh_token_log(\
+                    id uuid default gen_random_uuid(),\
+                    token_hash varchar(100) NOT NULL,\
+                    use_reason varchar(200) NOT NULL,\
+                    created timestamptz default CURRENT_TIMESTAMP,\
+                    modified timestamptz,\
+                    PRIMARY KEY (id) )"
+                )
+            )
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            ),
+        };
+
+        let results = match client.execute(
+            &statement,
+            &[],
+        ).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            )
+        };
+
+        Ok(format!("done :: {}", results))
+    }
     async fn may_create_table_rows_count_table(db_pool: &DbPool) -> Result<String, StatusMessage> {
         let client = resolve_client(db_pool).await;
 
@@ -59,10 +128,23 @@ impl MigrationContracts for MigrationStruct {
                     "CREATE TABLE IF NOT EXISTS paths(\
                     id uuid default gen_random_uuid(),\
                     path varchar(100) NOT NULL,\
+                    readable_path varchar(100) NOT NULL,\
                     get_available bool NOT NULL default false,\
                     post_available bool NOT NULL default false,\
                     put_available bool NOT NULL default false,\
                     delete_available bool NOT NULL default false,\
+                    can_delegate_get bool NOT NULL default false,\
+                    can_delegate_post bool NOT NULL default false,\
+                    can_delegate_put bool NOT NULL default false,\
+                    can_delegate_delete bool NOT NULL default false,\
+                    force_delegate_get bool NOT NULL default false,\
+                    force_delegate_post bool NOT NULL default false,\
+                    force_delegate_put bool NOT NULL default false,\
+                    force_delegate_delete bool NOT NULL default false,\
+                    can_access_for_children_get bool NOT NULL default false,\
+                    can_access_for_children_post bool NOT NULL default false,\
+                    can_access_for_children_put bool NOT NULL default false,\
+                    can_access_for_children_delete bool NOT NULL default false,\
                     created timestamptz default CURRENT_TIMESTAMP,\
                     modified timestamptz,\
                     PRIMARY KEY (id) )"
@@ -100,6 +182,7 @@ impl MigrationContracts for MigrationStruct {
                     derived_from uuid,\
                     name varchar(100) NOT NULL UNIQUE,\
                     can_delegate bool NOT NULL default false,\
+                    can_access_for_children bool NOT NULL default false,\
                     enabled bool NOT NULL default true,\
                     valid_from timestamptz,\
                     valid_to timestamptz,\
@@ -141,6 +224,7 @@ impl MigrationContracts for MigrationStruct {
                     auth_role uuid NOT NULL,\
                     path_id uuid NOT NULL,\
                     path varchar(200) NOT NULL,\
+                    readable_path varchar(200) NOT NULL,\
                     get_allowed bool NOT NULL default false,\
                     post_allowed bool NOT NULL default false,\
                     put_allowed bool NOT NULL default false,\
@@ -149,6 +233,10 @@ impl MigrationContracts for MigrationStruct {
                     can_delegate_post bool NOT NULL default false,\
                     can_delegate_put bool NOT NULL default false,\
                     can_delegate_delete bool NOT NULL default false,\
+                    can_access_for_children_get bool NOT NULL default false,\
+                    can_access_for_children_post bool NOT NULL default false,\
+                    can_access_for_children_put bool NOT NULL default false,\
+                    can_access_for_children_delete bool NOT NULL default false,\
                     where_replacement varchar(100),\
                     created timestamptz default CURRENT_TIMESTAMP,\
                     modified timestamptz,\

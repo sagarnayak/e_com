@@ -76,12 +76,25 @@ pub async fn enter_seed_data_to_paths(db_pool: &DbPool) {
 
     for path in get_paths() {
         let value = format!(
-            " ('{}',{},{},{},{}) ",
+            " ('{}','{}',{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}) ",
             path.path,
+            path.readable_path,
             path.get_available,
             path.post_available,
             path.put_available,
-            path.delete_available
+            path.delete_available,
+            path.can_delegate_get,
+            path.can_delegate_post,
+            path.can_delegate_put,
+            path.can_delegate_delete,
+            path.force_delegate_get,
+            path.force_delegate_post,
+            path.force_delegate_put,
+            path.force_delegate_delete,
+            path.can_access_for_children_get,
+            path.can_access_for_children_post,
+            path.can_access_for_children_put,
+            path.can_access_for_children_delete,
         );
         if values_string == " VALUES " {
             values_string.push_str(&value);
@@ -94,10 +107,23 @@ pub async fn enter_seed_data_to_paths(db_pool: &DbPool) {
     let statement = &format!(
         "INSERT INTO paths (\
                 path,\
+                readable_path,\
                 get_available,\
                 post_available,\
                 put_available,\
-                delete_available\
+                delete_available,\
+                can_delegate_get,\
+                can_delegate_post,\
+                can_delegate_put,\
+                can_delegate_delete,\
+                force_delegate_get,\
+                force_delegate_post,\
+                force_delegate_put,\
+                force_delegate_delete,\
+                can_access_for_children_get,\
+                can_access_for_children_post,\
+                can_access_for_children_put,\
+                can_access_for_children_delete\
                 ) \
                 {}",
         values_string
@@ -141,11 +167,13 @@ pub async fn enter_seed_data_to_roles(db_pool: &DbPool, id: &Uuid) {
                 id,\
                 name,\
                 can_delegate,\
+                can_access_for_children,\
                 enabled\
                 ) \
                 VALUES (\
                 '{}',\
-                'admin',\
+                'genesis',\
+                true,\
                 true,\
                 true\
                 )",
@@ -168,7 +196,7 @@ pub async fn enter_seed_data_to_roles(db_pool: &DbPool, id: &Uuid) {
     println!("seed data inserted to roles");
 }
 
-pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid) {
+pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid, config_data: ConfigData) {
     let client = resolve_client(db_pool).await;
 
     println!("trying to insert seed data to users");
@@ -177,8 +205,6 @@ pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid) {
         println!("rejected inserting seed data to users");
         return;
     }
-
-    let config_data = ConfigData::new();
 
     let hashed = hash(config_data.admin_data.admin_password, B_CRYPT_COST);
     let hashed = match hashed {
@@ -266,10 +292,15 @@ pub async fn enter_seed_data_to_auth_roles_cross_paths(db_pool: &DbPool) {
 
     for path in paths {
         let value = format!(
-            " ('{}','{}','{}',{},{},{},{},{},{},{},{}) ",
+            " ('{}','{}','{}','{}',{},{},{},{},{},{},{},{},{},{},{},{}) ",
             admin_role.id,
             path.id.unwrap(),
             path.path,
+            path.readable_path,
+            path.get_available,
+            path.post_available,
+            path.put_available,
+            path.delete_available,
             path.get_available,
             path.post_available,
             path.put_available,
@@ -294,6 +325,7 @@ pub async fn enter_seed_data_to_auth_roles_cross_paths(db_pool: &DbPool) {
                 auth_role,\
                 path_id,\
                 path,\
+                readable_path,\
                 get_allowed,\
                 post_allowed,\
                 put_allowed,\
@@ -301,7 +333,11 @@ pub async fn enter_seed_data_to_auth_roles_cross_paths(db_pool: &DbPool) {
                 can_delegate_get,\
                 can_delegate_post,\
                 can_delegate_put,\
-                can_delegate_delete\
+                can_delegate_delete,\
+                can_access_for_children_get,\
+                can_access_for_children_post,\
+                can_access_for_children_put,\
+                can_access_for_children_delete\
                 ) \
                 {}",
                 values_string

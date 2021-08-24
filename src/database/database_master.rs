@@ -9,9 +9,8 @@ use crate::migrations::migration_contracts::MigrationContracts;
 use crate::migrations::migrations::MigrationStruct;
 use crate::migrations::seeder::{enter_seed_data_to_auth_roles_cross_paths, enter_seed_data_to_paths, enter_seed_data_to_roles, enter_seed_data_to_users};
 
-fn get_pool() -> Pool {
-    let config = ConfigData::new();
-    let database = config.database;
+fn get_pool(config_data: ConfigData) -> Pool {
+    let database = config_data.database;
 
     let host = database.host;
     let port = database.port;
@@ -31,9 +30,9 @@ fn get_pool() -> Pool {
     cfg.create_pool(NoTls).unwrap()
 }
 
-pub fn get_db_pools() -> DbPool {
+pub fn get_db_pools(config_data: ConfigData) -> DbPool {
     DbPool {
-        pool: get_pool()
+        pool: get_pool(config_data)
     }
 }
 
@@ -51,8 +50,8 @@ pub async fn resolve_client(db_pool: &DbPool) -> Client {
     client
 }
 
-pub async fn may_execute_migrations() {
-    let db_pool = database_master::get_db_pools();
+pub async fn may_execute_migrations(config_data: ConfigData) {
+    let db_pool = database_master::get_db_pools(config_data.clone());
     match MigrationStruct::may_create_table_rows_count_table(&db_pool).await {
         Ok(_) => {
             println!("may create table rows count completed.");
@@ -90,7 +89,7 @@ pub async fn may_execute_migrations() {
     match MigrationStruct::may_create_users_table(&db_pool).await {
         Ok(_) => {
             println!("may create table users completed.");
-            enter_seed_data_to_users(&db_pool, &my_uuid).await;
+            enter_seed_data_to_users(&db_pool, &my_uuid, config_data.clone()).await;
         }
         Err(error) => println!("user table creation error error is {:?}", error),
     }
@@ -111,5 +110,17 @@ pub async fn may_execute_migrations() {
             println!("may create table blocked_for_platform_authorization completed.");
         }
         Err(error) => println!("blocked_for_platform_authorization table creation error error is {:?}", error),
+    }
+    match MigrationStruct::may_create_cached_auth_data_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table cached_auth_data completed.");
+        }
+        Err(error) => println!("cached_auth_data table creation error error is {:?}", error),
+    }
+    match MigrationStruct::may_create_refresh_token_logs_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table refresh_token_logs completed.");
+        }
+        Err(error) => println!("refresh_token_logs table creation error error is {:?}", error),
     }
 }

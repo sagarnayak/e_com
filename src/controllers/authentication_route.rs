@@ -4,6 +4,7 @@ use rocket::response::status;
 use rocket::serde::json::Json;
 use rocket::State;
 
+use crate::config_controller::ConfigData;
 use crate::contracts::auth_roles_cross_paths_contracts::AuthRolesCrossPathsContracts;
 use crate::contracts::blocked_for_platform_authorization_contracts::BlockedForPlatformAuthorizationContracts;
 use crate::contracts::role_contracts::RoleContracts;
@@ -24,6 +25,7 @@ use crate::model::user::User;
 pub async fn authenticate(
     authentication_request: Option<Json<AuthenticationRequest>>,
     db_pool: &State<DbPool>,
+    config_data: &State<ConfigData>,
 )
     -> status::Custom<Result<Json<AuthenticationResponse>, Json<StatusMessage>>> {
     let authentication_request = match authentication_request {
@@ -34,7 +36,7 @@ pub async fn authenticate(
     };
 
     let user: User = match User::find_user_with_email(
-        authentication_request.user_email.clone(),
+        &authentication_request.user_email,
         db_pool,
     ).await {
         Ok(positive) => {
@@ -55,6 +57,7 @@ pub async fn authenticate(
     ) {
         Ok(positive) => {
             if !positive {
+                println!("4");
                 return StatusMessage::unauthorized_401_with_status_code_in_result(
                     AUTHENTICATION_FAILURE.to_string(),
                     None,
@@ -63,6 +66,7 @@ pub async fn authenticate(
             }
         }
         Err(_) => {
+            println!("5");
             return StatusMessage::unauthorized_401_with_status_code_in_result(
                 AUTHENTICATION_FAILURE.to_string(),
                 None,
@@ -77,7 +81,8 @@ pub async fn authenticate(
     ).await {
         Ok(_) => {
             return StatusMessage::unauthorized_401_with_status_code_in_result(
-                "Please perform a platform authorization on your previous logged in device or contact admin".to_owned(),
+                "Please perform a platform authorization on your previous \
+                logged in device or contact admin".to_owned(),
                 Some(NEED_PLATFORM_AUTH),
                 None,
             );
@@ -120,12 +125,15 @@ pub async fn authenticate(
 
     match create_jwt(
         60 * 60,
+        60 * 60 * 24 * 30,
         &user,
         auth_roles_cross_paths,
-    ) {
+        &db_pool,
+        config_data.inner().clone(),
+    ).await {
         Ok(positive) => status::Custom(
             Status::Ok,
-            Ok(Json(AuthenticationResponse { jwt: positive })),
+            Ok(Json(AuthenticationResponse { jwt: positive.0, refresh_token: positive.1 })),
         ),
         Err(error) => status::Custom(
             Status::BadRequest,

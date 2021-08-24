@@ -163,6 +163,11 @@ impl StatusMessage {
             )
         )
     }
+    pub fn bad_request_400_in_result_with_status_message<T>(message: StatusMessage) -> Result<T, StatusMessage> {
+        Err(
+            message
+        )
+    }
     pub fn bad_request_400_with_status_code_in_result<T>(message: String)
                                                          -> status::Custom<Result<T, Json<StatusMessage>>> {
         StatusMessage::custom_with_status_code_in_result(

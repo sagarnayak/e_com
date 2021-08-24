@@ -8,6 +8,7 @@ pub struct Role {
     pub derived_from: Option<String>,
     pub name: String,
     pub can_delegate: bool,
+    pub can_access_for_children: bool,
     pub enabled: bool,
     pub valid_from: Option<DateTime<Utc>>,
     pub valid_to: Option<DateTime<Utc>>,
