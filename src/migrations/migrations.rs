@@ -12,6 +12,42 @@ pub struct MigrationStruct;
 
 #[async_trait]
 impl MigrationContracts for MigrationStruct {
+    async fn may_create_table_rows_count_table(db_pool: &DbPool) -> Result<String, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement = match client
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS table_rows_counts(\
+                    id uuid default gen_random_uuid(),\
+                    table_name varchar(100) NOT NULL,\
+                    rows integer NOT NULL,\
+                    where_condition varchar(100),\
+                    created timestamptz default CURRENT_TIMESTAMP,\
+                    modified timestamptz,\
+                    PRIMARY KEY (id) )"
+                )
+            )
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            ),
+        };
+
+        let results = match client.execute(
+            &statement,
+            &[],
+        ).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            )
+        };
+
+        Ok(format!("done :: {}", results))
+    }
+
     async fn may_create_paths_table(
         db_pool: &DbPool
     ) -> Result<String, StatusMessage> {
@@ -62,7 +98,7 @@ impl MigrationContracts for MigrationStruct {
                     "CREATE TABLE IF NOT EXISTS roles(\
                     id uuid default gen_random_uuid(),\
                     derived_from uuid,\
-                    name varchar(100) NOT NULL,\
+                    name varchar(100) NOT NULL UNIQUE,\
                     can_delegate bool NOT NULL default false,\
                     enabled bool NOT NULL default true,\
                     valid_from timestamptz,\
@@ -109,6 +145,10 @@ impl MigrationContracts for MigrationStruct {
                     post_allowed bool NOT NULL default false,\
                     put_allowed bool NOT NULL default false,\
                     delete_allowed bool NOT NULL default false,\
+                    can_delegate_get bool NOT NULL default false,\
+                    can_delegate_post bool NOT NULL default false,\
+                    can_delegate_put bool NOT NULL default false,\
+                    can_delegate_delete bool NOT NULL default false,\
                     where_replacement varchar(100),\
                     created timestamptz default CURRENT_TIMESTAMP,\
                     modified timestamptz,\
@@ -264,6 +304,43 @@ impl MigrationContracts for MigrationStruct {
                     valid_from timestamptz,\
                     valid_to timestamptz,\
                     reason varchar(200),\
+                    created timestamptz default CURRENT_TIMESTAMP NOT NULL,\
+                    modified timestamptz,\
+                    PRIMARY KEY (id) )"
+                )
+            )
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            ),
+        };
+
+        let results = match client.execute(
+            &statement,
+            &[],
+        ).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(
+                error.to_string(),
+            )
+        };
+
+        Ok(format!("done :: {}", results))
+    }
+
+    async fn may_create_blocked_for_platform_authorization_table(db_pool: &DbPool) -> Result<String, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement = match client
+            .prepare_cached(
+                &format!(
+                    "CREATE TABLE IF NOT EXISTS blocked_for_platform_authorization(\
+                    id uuid default gen_random_uuid(),\
+                    user_id uuid NOT NULL,\
+                    jwt_hash varchar(200) NOT NULL,\
+                    nonce varchar(200) NOT NULL,\
+                    done bool NOT NULL default false,\
                     created timestamptz default CURRENT_TIMESTAMP NOT NULL,\
                     modified timestamptz,\
                     PRIMARY KEY (id) )"

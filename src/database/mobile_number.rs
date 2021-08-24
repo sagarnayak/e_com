@@ -7,27 +7,11 @@ use crate::database::database_master::resolve_client;
 use crate::database::db_pool::DbPool;
 use crate::model::mobile_number::MobileNumber;
 use crate::model::status_message::StatusMessage;
+use postgres::Row;
 
-#[async_trait]
-impl MobileNumberContracts for MobileNumber {
-    async fn find_mobile_number_with_id(mobile_number_id: &str, db_pool: &State<DbPool>) -> Result<MobileNumber, StatusMessage> {
-        let client = resolve_client(db_pool).await;
-
-        let statement_to_send = &format!("SELECT * FROM mobile_numbers WHERE id = '{}'", mobile_number_id);
-
-        let statement = match client
-            .prepare_cached(statement_to_send)
-            .await {
-            Ok(statement_positive) => statement_positive,
-            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-        };
-
-        let results = match client.query(&statement, &[]).await {
-            Ok(result_positive) => result_positive,
-            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-        };
-
-        let mut mobile_numbers: Vec<MobileNumber> = vec![];
+impl MobileNumber {
+    async fn convert_results_to_models(results: &Vec<Row>) -> Result<Vec<MobileNumber>, StatusMessage> {
+        let mut results_to_send: Vec<MobileNumber> = vec![];
 
         for row in results {
             let id: Uuid = match row.try_get(0) {
@@ -74,13 +58,45 @@ impl MobileNumberContracts for MobileNumber {
                 modified,
             };
 
-            mobile_numbers.push(mobile_number);
+            results_to_send.push(mobile_number);
         }
 
-        if mobile_numbers.len() != 0 {
-            let mobile_number_to_return = mobile_numbers[0].clone();
+        Ok(results_to_send)
+    }
+}
+
+#[async_trait]
+impl MobileNumberContracts for MobileNumber {
+    async fn find_mobile_number_with_id(mobile_number_id: &str, db_pool: &State<DbPool>) -> Result<MobileNumber, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement_to_send = &format!("SELECT * FROM mobile_numbers WHERE id = '{}'", mobile_number_id);
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(statement_positive) => statement_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.query(&statement, &[]).await {
+            Ok(result_positive) => result_positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results_to_send = match MobileNumber::convert_results_to_models(&results).await {
+            Ok(positive) => {
+                positive
+            }
+            Err(error) => {
+                return Err(error);
+            }
+        };
+
+        if results_to_send.len() != 0 {
+            let res_to_return = results_to_send[0].clone();
             Ok(
-                mobile_number_to_return
+                res_to_return
             )
         } else {
             StatusMessage::bad_request_400_in_result(

@@ -6,11 +6,13 @@ use crate::database::database_master::may_execute_migrations;
 
 mod migrations;
 mod database;
+mod utils;
 mod config_controller;
 mod controllers;
 mod core;
 mod jwt_master;
 mod contracts;
+mod responder;
 mod model;
 mod guards;
 

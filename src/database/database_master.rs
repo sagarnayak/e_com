@@ -19,6 +19,8 @@ fn get_pool() -> Pool {
     let password = database.password;
     let database_name = database.database_name;
 
+    println!("host - {} post - {} user - {} password - {} db_name - {}", &host, &port, &user, &password, &database_name);
+
     let mut cfg = Config::new();
     cfg.host = Some(host);
     cfg.port = Some(port);
@@ -51,6 +53,12 @@ pub async fn resolve_client(db_pool: &DbPool) -> Client {
 
 pub async fn may_execute_migrations() {
     let db_pool = database_master::get_db_pools();
+    match MigrationStruct::may_create_table_rows_count_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table rows count completed.");
+        }
+        Err(error) => println!("table rows count creation error error is {:?}", error),
+    }
     match MigrationStruct::may_create_paths_table(&db_pool).await {
         Ok(_) => {
             println!("may create table paths completed.");
@@ -97,5 +105,11 @@ pub async fn may_execute_migrations() {
             println!("may create table authorization_exceptions completed.");
         }
         Err(error) => println!("authorization_exceptions table creation error error is {:?}", error),
+    }
+    match MigrationStruct::may_create_blocked_for_platform_authorization_table(&db_pool).await {
+        Ok(_) => {
+            println!("may create table blocked_for_platform_authorization completed.");
+        }
+        Err(error) => println!("blocked_for_platform_authorization table creation error error is {:?}", error),
     }
 }

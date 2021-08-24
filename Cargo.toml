@@ -11,7 +11,6 @@ rand = "0.8.4"
 serde = { version = "1.0.64", features = ["derive"] }
 postgres = { version = "0.19.1", features = ["with-chrono-0_4", "with-uuid-0_8"] }
 deadpool-postgres = "0.9.0"
-tokio = "1.8.1"
 tokio-postgres = "0.7.2"
 async-trait = "0.1.50"
 bcrypt = "0.10.0"
@@ -19,3 +18,9 @@ jsonwebtoken = "7.2.0"
 chrono = { version = "0.4.19", features = ["serde"] }
 clokwerk = "0.3.5"
 uuid = { version = "0.8.2", features = ["serde", "v4"] }
+async-recursion = "0.3.2"
+reqwest = { version = "0.11.4", features = ["json"] }
+openssl = "0.10.35"
+tokio = { version = "1.8.1", features = ["full"] }
+base64 = "0.13.0"
+serde_json = "1.0.66"

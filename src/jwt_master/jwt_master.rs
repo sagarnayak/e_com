@@ -14,15 +14,20 @@ pub fn create_jwt(
     user: &User,
     auth_roles_cross_paths: Vec<AuthRolesCrossPaths>,
 ) -> Result<String, StatusMessage> {
+    let mut minified_auth_roles_cross_paths = vec![];
+    for auth in auth_roles_cross_paths {
+        minified_auth_roles_cross_paths.push(
+            auth.get_minified_version()
+        )
+    }
     let my_claims =
         Claims {
-            owner: user.first_name.clone(),
-            authorizations: auth_roles_cross_paths,
+            owner: user.id.clone(),
+            authorizations_minified: minified_auth_roles_cross_paths,
             exp: (Utc::now().timestamp() + exp_after_secs) as usize,
         };
 
     let mut header = Header::default();
-    header.kid = Some("key identifier".to_string());
     header.alg = Algorithm::HS512;
     let token = match encode(
         &header,
@@ -36,7 +41,7 @@ pub fn create_jwt(
     Ok(token)
 }
 
-pub fn validate_jwt(jwt: String) -> (bool, bool) {
+pub fn validate_jwt(jwt: &str) -> (bool, bool) {
     let mut is_valid = false;
     let mut is_expired = false;
 
@@ -51,7 +56,6 @@ pub fn validate_jwt(jwt: String) -> (bool, bool) {
             is_valid = true;
         }
         Err(err) => {
-            println!("the error kind is {}", &err);
             match *err.kind() {
                 ErrorKind::InvalidToken => {}
                 ErrorKind::InvalidIssuer => {}
@@ -64,4 +68,21 @@ pub fn validate_jwt(jwt: String) -> (bool, bool) {
     };
 
     return (is_valid, is_expired);
+}
+
+pub fn extract_jwt(key_to_decode: &str) -> Result<Claims, StatusMessage> {
+    let token_data = match decode::<Claims>(
+        &key_to_decode,
+        &DecodingKey::from_secret(
+            ConfigData::new().jwt.secret.as_bytes()
+        ),
+        &Validation::new(Algorithm::HS512),
+    ) {
+        Ok(c) => Ok(c.claims),
+        Err(_) => {
+            StatusMessage::bad_request_400_in_result("Failed to extract data from JWT".to_string())
+        }
+    };
+
+    token_data
 }

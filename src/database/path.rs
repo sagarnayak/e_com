@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use postgres::Row;
 use uuid::Uuid;
 
 use crate::contracts::path_contracts::PathContracts;
@@ -7,27 +8,9 @@ use crate::database::db_pool::DbPool;
 use crate::model::path::Path;
 use crate::model::status_message::StatusMessage;
 
-#[async_trait]
-impl PathContracts for Path {
-    async fn fetch_all(db_pool: &DbPool) -> Result<Vec<Path>, StatusMessage> {
-        let client = resolve_client(db_pool).await;
-
-        let statement_to_send = &format!("SELECT * FROM paths");
-
-        let statement = match client
-            .prepare_cached(statement_to_send)
-            .await {
-            Ok(positive) => positive,
-            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-        };
-
-        let results = match client.query(&statement, &[]).await {
-            Ok(positive) => positive,
-            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
-        };
-
-        let mut results_vec: Vec<Path> = vec![];
-
+impl Path {
+    async fn convert_results_to_models(results: &Vec<Row>) -> Result<Vec<Path>, StatusMessage> {
+        let mut results_to_send: Vec<Path> = vec![];
 
         for row in results {
             let id: Uuid = match row.try_get(0) {
@@ -138,12 +121,44 @@ impl PathContracts for Path {
                 modified,
             };
 
-            results_vec.push(path);
+            results_to_send.push(path);
         }
 
-        if results_vec.len() != 0 {
+        Ok(results_to_send)
+    }
+}
+
+#[async_trait]
+impl PathContracts for Path {
+    async fn fetch_all(db_pool: &DbPool) -> Result<Vec<Path>, StatusMessage> {
+        let client = resolve_client(db_pool).await;
+
+        let statement_to_send = &format!("SELECT * FROM paths");
+
+        let statement = match client
+            .prepare_cached(statement_to_send)
+            .await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results = match client.query(&statement, &[]).await {
+            Ok(positive) => positive,
+            Err(error) => return StatusMessage::bad_request_400_in_result(error.to_string()),
+        };
+
+        let results_to_send = match Path::convert_results_to_models(&results).await {
+            Ok(positive) => {
+                positive
+            }
+            Err(error) => {
+                return Err(error);
+            }
+        };
+
+        if results_to_send.len() != 0 {
             Ok(
-                results_vec
+                results_to_send
             )
         } else {
             StatusMessage::bad_request_400_in_result(

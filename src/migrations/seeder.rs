@@ -11,13 +11,14 @@ use crate::database::db_pool::DbPool;
 use crate::model::path::Path;
 use crate::model::role::Role;
 
-async fn should_proceed_inserting_seed_data(db_pool: &DbPool, table_name: &str) -> bool {
+async fn should_proceed_inserting_seed_data(db_pool: &DbPool, table_name: &str, min_threshold_to_skip: usize) -> bool {
     let client = resolve_client(db_pool).await;
 
     let statement = match client.prepare_cached(
         &format!(
-            "SELECT * FROM {} LIMIT 1",
-            table_name
+            "SELECT * FROM {} LIMIT {}",
+            table_name,
+            &min_threshold_to_skip
         )
     ).await {
         Ok(positive) => positive,
@@ -34,7 +35,7 @@ async fn should_proceed_inserting_seed_data(db_pool: &DbPool, table_name: &str) 
         Err(_) => panic!()
     };
 
-    result.len() == 0
+    result.len() < min_threshold_to_skip
 }
 
 pub async fn enter_seed_data_to_paths(db_pool: &DbPool) {
@@ -42,23 +43,47 @@ pub async fn enter_seed_data_to_paths(db_pool: &DbPool) {
 
     println!("trying to insert seed data to paths");
 
-    if !should_proceed_inserting_seed_data(db_pool, "paths").await {
+    let paths = get_paths();
+
+    if !should_proceed_inserting_seed_data(db_pool, "paths", paths.len()).await {
         println!("rejected inserting seed data to paths");
         return;
     }
 
-    let mut values_string: String = "".to_owned();
+    let statement = &format!(
+        "DELETE FROM paths"
+    );
+
+    let statement = match client
+        .prepare_cached(statement)
+        .await {
+        Ok(statement_positive) => statement_positive,
+        Err(error) => {
+            println!("error  ::: {}", error.to_string());
+            panic!();
+        }
+    };
+
+    let _ = match client.execute(
+        &statement,
+        &[],
+    ).await {
+        Ok(positive) => positive,
+        Err(_) => panic!()
+    };
+
+    let mut values_string: String = " VALUES ".to_owned();
 
     for path in get_paths() {
         let value = format!(
-            "VALUES ('{}',{},{},{},{})",
+            " ('{}',{},{},{},{}) ",
             path.path,
             path.get_available,
             path.post_available,
             path.put_available,
             path.delete_available
         );
-        if values_string.len() == 0 {
+        if values_string == " VALUES " {
             values_string.push_str(&value);
         } else {
             values_string.push_str(",");
@@ -66,10 +91,8 @@ pub async fn enter_seed_data_to_paths(db_pool: &DbPool) {
         }
     }
 
-    let statement = match client
-        .prepare_cached(
-            &format!(
-                "INSERT INTO paths (\
+    let statement = &format!(
+        "INSERT INTO paths (\
                 path,\
                 get_available,\
                 post_available,\
@@ -77,9 +100,11 @@ pub async fn enter_seed_data_to_paths(db_pool: &DbPool) {
                 delete_available\
                 ) \
                 {}",
-                values_string
-            )
-        )
+        values_string
+    );
+
+    let statement = match client
+        .prepare_cached(statement)
         .await {
         Ok(statement_positive) => statement_positive,
         Err(error) => {
@@ -104,7 +129,7 @@ pub async fn enter_seed_data_to_roles(db_pool: &DbPool, id: &Uuid) {
 
     println!("trying to insert seed data to roles");
 
-    if !should_proceed_inserting_seed_data(db_pool, "roles").await {
+    if !should_proceed_inserting_seed_data(db_pool, "roles", 1).await {
         println!("rejected inserting seed data to roles");
         return;
     }
@@ -148,7 +173,7 @@ pub async fn enter_seed_data_to_users(db_pool: &DbPool, role_id: &Uuid) {
 
     println!("trying to insert seed data to users");
 
-    if !should_proceed_inserting_seed_data(db_pool, "users").await {
+    if !should_proceed_inserting_seed_data(db_pool, "users", 1).await {
         println!("rejected inserting seed data to users");
         return;
     }
@@ -205,28 +230,56 @@ pub async fn enter_seed_data_to_auth_roles_cross_paths(db_pool: &DbPool) {
 
     println!("trying to insert seed data to auth_roles_cross_paths");
 
-    if !should_proceed_inserting_seed_data(db_pool, "auth_roles_cross_paths").await {
+    let paths = get_paths();
+
+    if !should_proceed_inserting_seed_data(db_pool, "auth_roles_cross_paths", paths.len()).await {
         println!("rejected inserting seed data to auth_roles_cross_paths");
         return;
     }
 
+    let statement = &format!(
+        "DELETE FROM auth_roles_cross_paths"
+    );
+
+    let statement = match client
+        .prepare_cached(statement)
+        .await {
+        Ok(statement_positive) => statement_positive,
+        Err(error) => {
+            println!("error  ::: {}", error.to_string());
+            panic!();
+        }
+    };
+
+    let _ = match client.execute(
+        &statement,
+        &[],
+    ).await {
+        Ok(positive) => positive,
+        Err(_) => panic!()
+    };
+
     let admin_role = Role::find_role_for_admin(db_pool).await.unwrap();
     let paths = Path::fetch_all(db_pool).await.unwrap();
 
-    let mut values_string: String = "".to_owned();
+    let mut values_string: String = " VALUES ".to_owned();
 
     for path in paths {
         let value = format!(
-            "VALUES ('{}','{}','{}',{},{},{},{})",
+            " ('{}','{}','{}',{},{},{},{},{},{},{},{}) ",
             admin_role.id,
             path.id.unwrap(),
             path.path,
             path.get_available,
             path.post_available,
             path.put_available,
+            path.delete_available,
+            path.get_available,
+            path.post_available,
+            path.put_available,
             path.delete_available
         );
-        if values_string.len() == 0 {
+        if values_string == " VALUES " {
             values_string.push_str(&value);
         } else {
             values_string.push_str(",");
@@ -244,7 +297,11 @@ pub async fn enter_seed_data_to_auth_roles_cross_paths(db_pool: &DbPool) {
                 get_allowed,\
                 post_allowed,\
                 put_allowed,\
-                delete_allowed\
+                delete_allowed,\
+                can_delegate_get,\
+                can_delegate_post,\
+                can_delegate_put,\
+                can_delegate_delete\
                 ) \
                 {}",
                 values_string
